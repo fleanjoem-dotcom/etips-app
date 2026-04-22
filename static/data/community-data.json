@@ -1,0 +1,627 @@
+{
+  "safetyTips": [
+    {
+      "id": "tip-1",
+      "title": "Drop, Cover, and Hold On",
+      "description": "The most important action during an earthquake",
+      "icon": "shield",
+      "category": "During Earthquake"
+    },
+    {
+      "id": "tip-2",
+      "title": "Stay Away from Windows",
+      "description": "Glass can shatter and cause serious injuries",
+      "icon": "alert-triangle",
+      "category": "During Earthquake"
+    },
+    {
+      "id": "tip-3",
+      "title": "Secure Heavy Furniture",
+      "description": "Anchor bookcases, cabinets, and appliances to walls",
+      "icon": "anchor",
+      "category": "Before Earthquake"
+    },
+    {
+      "id": "tip-4",
+      "title": "Keep Emergency Kit Ready",
+      "description": "Maintain supplies for at least 72 hours",
+      "icon": "package",
+      "category": "Before Earthquake"
+    },
+    {
+      "id": "tip-5",
+      "title": "Know Your Safe Spots",
+      "description": "Identify safe places in every room of your home",
+      "icon": "map-pin",
+      "category": "Before Earthquake"
+    },
+    {
+      "id": "tip-6",
+      "title": "Check for Injuries First",
+      "description": "Provide first aid before checking property damage",
+      "icon": "heart-pulse",
+      "category": "After Earthquake"
+    },
+    {
+      "id": "tip-7",
+      "title": "Expect Aftershocks",
+      "description": "Be ready to Drop, Cover, and Hold On again",
+      "icon": "activity",
+      "category": "After Earthquake"
+    },
+    {
+      "id": "tip-8",
+      "title": "Turn Off Gas if You Smell Leak",
+      "description": "Prevent fires and explosions after earthquake",
+      "icon": "flame",
+      "category": "After Earthquake"
+    }
+  ],
+  "reminders": [
+    {
+      "id": "reminder-1",
+      "title": "Monthly Drill Practice",
+      "description": "Practice earthquake drills with your family every month",
+      "icon": "calendar",
+      "priority": "high",
+      "frequency": "Monthly"
+    },
+    {
+      "id": "reminder-2",
+      "title": "Check Emergency Kit",
+      "description": "Inspect and rotate supplies every 6 months",
+      "icon": "check-circle",
+      "priority": "high",
+      "frequency": "Every 6 Months"
+    },
+    {
+      "id": "reminder-3",
+      "title": "Update Emergency Contacts",
+      "description": "Keep your family contact list current",
+      "icon": "phone",
+      "priority": "medium",
+      "frequency": "Quarterly"
+    },
+    {
+      "id": "reminder-4",
+      "title": "Review Evacuation Routes",
+      "description": "Familiarize yourself with updated evacuation paths",
+      "icon": "map",
+      "priority": "medium",
+      "frequency": "Quarterly"
+    },
+    {
+      "id": "reminder-5",
+      "title": "Test Smoke Alarms",
+      "description": "Ensure all alarms are working properly",
+      "icon": "bell",
+      "priority": "high",
+      "frequency": "Monthly"
+    },
+    {
+      "id": "reminder-6",
+      "title": "Secure Water Heater",
+      "description": "Check straps and anchors are tight",
+      "icon": "droplet",
+      "priority": "low",
+      "frequency": "Yearly"
+    }
+  ],
+  "drillTutorials": [
+    {
+      "id": "drill-1",
+      "title": "Duck, Cover, and Hold",
+      "description": "Learn the essential earthquake response technique that can save your life",
+      "icon": "shield-check",
+      "duration": "2-3 minutes",
+      "difficulty": "Easy",
+      "image": "/static/images/during-earthquake.jpg",
+      "steps": [
+        {
+          "number": 1,
+          "title": "DROP",
+          "description": "Drop down onto your hands and knees immediately. This position protects you from being knocked down and allows you to stay low and crawl to shelter if nearby.",
+          "tip": "Do this before the earthquake knocks you down"
+        },
+        {
+          "number": 2,
+          "title": "COVER",
+          "description": "Cover your head and neck with your arms. If a sturdy table or desk is nearby, crawl underneath it for shelter. If no shelter is nearby, crawl next to an interior wall away from windows.",
+          "tip": "Stay on your knees and bend over to protect vital organs"
+        },
+        {
+          "number": 3,
+          "title": "HOLD ON",
+          "description": "If you are under a table or desk, hold on to it with one hand and be ready to move with it if it shifts. If seated and unable to drop to the floor, bend forward, cover your head with your arms and hold on to your neck with both hands.",
+          "tip": "Stay in position until the shaking stops"
+        },
+        {
+          "number": 4,
+          "title": "STAY PUT",
+          "description": "Remain in your safe position for at least 60 seconds after the shaking stops. Do not immediately run outside as aftershocks may occur.",
+          "tip": "Count to 60 slowly before moving"
+        },
+        {
+          "number": 5,
+          "title": "ASSESS SITUATION",
+          "description": "After shaking stops, carefully look around. Check for hazards such as fire, gas leaks, or structural damage before moving.",
+          "tip": "Use your phone flashlight if power is out"
+        }
+      ],
+      "importantNotes": [
+        "DO NOT run outside during shaking",
+        "DO NOT stand in doorways (outdated advice)",
+        "If in bed, stay there and cover your head with a pillow",
+        "If outdoors, move away from buildings, trees, and power lines",
+        "If driving, pull over safely and stay in vehicle"
+      ]
+    },
+    {
+      "id": "drill-2",
+      "title": "Evacuation Drill",
+      "description": "Master the proper evacuation procedures for your home and workplace",
+      "icon": "log-out",
+      "duration": "5-10 minutes",
+      "difficulty": "Medium",
+      "image": "/static/images/after-earthquake.jpg",
+      "steps": [
+        {
+          "number": 1,
+          "title": "IDENTIFY EXITS",
+          "description": "Know all possible exits from your location. Identify at least two escape routes from every room. Mark them on a floor plan.",
+          "tip": "Walk through each route during daylight"
+        },
+        {
+          "number": 2,
+          "title": "GRAB GO-BAG",
+          "description": "Keep a pre-packed emergency bag near the exit. It should contain essentials: water, first aid, flashlight, phone charger, important documents.",
+          "tip": "Store go-bag in an easily accessible location"
+        },
+        {
+          "number": 3,
+          "title": "ALERT OTHERS",
+          "description": "Shout 'EVACUATE!' loudly and clearly. Knock on doors if in a building. Help children, elderly, and people with disabilities first.",
+          "tip": "Assign roles to family members in advance"
+        },
+        {
+          "number": 4,
+          "title": "MOVE QUICKLY BUT SAFELY",
+          "description": "Walk quickly but do not run. Stay low if there is smoke. Use stairs, never elevators. Keep to the right side of hallways and stairs.",
+          "tip": "Feel doors before opening - if hot, use alternate route"
+        },
+        {
+          "number": 5,
+          "title": "GO TO ASSEMBLY POINT",
+          "description": "Proceed directly to your designated meeting point. This should be at least 50 meters from the building in an open area away from power lines and trees.",
+          "tip": "Choose a landmark everyone can easily identify"
+        },
+        {
+          "number": 6,
+          "title": "ACCOUNT FOR EVERYONE",
+          "description": "Take attendance at the assembly point. Report missing persons to emergency responders immediately. Do not re-enter the building.",
+          "tip": "Designate one person as the accountability officer"
+        },
+        {
+          "number": 7,
+          "title": "WAIT FOR ALL-CLEAR",
+          "description": "Stay at the assembly point until authorities declare it safe to return. Listen to official announcements via radio or E-TIPS app.",
+          "tip": "Keep phone charged for emergency communications"
+        }
+      ],
+      "importantNotes": [
+        "Practice evacuation drills at least twice a year",
+        "Time your evacuation to identify bottlenecks",
+        "Ensure everyone knows the assembly point location",
+        "Keep evacuation routes clear of obstacles",
+        "Have a backup meeting point in case primary is blocked",
+        "Never use elevators during evacuation"
+      ]
+    },
+    {
+      "id": "drill-3",
+      "title": "Fire Safety Drill",
+      "description": "Learn how to respond to fires that may occur after earthquakes",
+      "icon": "flame",
+      "duration": "5 minutes",
+      "difficulty": "Medium",
+      "image": "/static/images/fire-safety-drill.jpg",
+      "steps": [
+        {
+          "number": 1,
+          "title": "DETECT FIRE",
+          "description": "Recognize signs of fire: smoke, smell of burning, heat, or visible flames. Shout 'FIRE!' to alert others immediately.",
+          "tip": "Install smoke detectors on every floor"
+        },
+        {
+          "number": 2,
+          "title": "ACTIVATE ALARM",
+          "description": "Pull the nearest fire alarm if in a building. Call emergency services (911 or local fire department) immediately.",
+          "tip": "Know where fire alarms are located"
+        },
+        {
+          "number": 3,
+          "title": "EVACUATE IMMEDIATELY",
+          "description": "Leave the area at once. Close doors behind you to slow fire spread. Do not stop to collect belongings.",
+          "tip": "Touch doors before opening - if hot, use another exit"
+        },
+        {
+          "number": 4,
+          "title": "STAY LOW",
+          "description": "Crawl low under smoke. Hot air and toxic gases rise, so cleaner air is near the floor. Cover your nose and mouth with cloth.",
+          "tip": "Practice crawling with eyes closed"
+        },
+        {
+          "number": 5,
+          "title": "NEVER GO BACK",
+          "description": "Once outside, stay outside. Never return to a burning building for any reason. Wait for firefighters.",
+          "tip": "Account for everyone at assembly point"
+        }
+      ],
+      "importantNotes": [
+        "Stop, Drop, and Roll if clothes catch fire",
+        "Know how to use a fire extinguisher (PASS method)",
+        "Keep fire extinguisher accessible",
+        "Check smoke detectors monthly",
+        "Have escape ladders for upper floors"
+      ]
+    },
+    {
+      "id": "drill-4",
+      "title": "First Aid Response",
+      "description": "Essential first aid skills for earthquake emergencies",
+      "icon": "heart-pulse",
+      "duration": "10 minutes",
+      "difficulty": "Advanced",
+      "image": "/static/images/before-earthquake.jpg",
+      "steps": [
+        {
+          "number": 1,
+          "title": "ASSESS THE SCENE",
+          "description": "Ensure the area is safe before approaching victims. Look for hazards: fire, gas leaks, unstable structures, downed power lines.",
+          "tip": "Your safety comes first - you can't help if you're injured"
+        },
+        {
+          "number": 2,
+          "title": "CHECK RESPONSIVENESS",
+          "description": "Tap the person's shoulder and shout 'Are you okay?' If no response, check for breathing by looking at chest movement.",
+          "tip": "Call for help immediately if person is unresponsive"
+        },
+        {
+          "number": 3,
+          "title": "CONTROL BLEEDING",
+          "description": "Apply direct pressure to wounds with clean cloth. Elevate injured limb above heart if possible. Apply pressure for 10-15 minutes.",
+          "tip": "Use gloves or plastic bag to protect yourself"
+        },
+        {
+          "number": 4,
+          "title": "TREAT FOR SHOCK",
+          "description": "Lay person flat, elevate legs 12 inches if no spinal injury suspected. Keep warm with blanket. Reassure and monitor.",
+          "tip": "Do not give food or water to shock victims"
+        },
+        {
+          "number": 5,
+          "title": "IMMOBILIZE INJURIES",
+          "description": "Do not move person with suspected spinal injury. Splint broken bones before moving. Use rigid materials and padding.",
+          "tip": "Splint in position found, don't try to straighten"
+        },
+        {
+          "number": 6,
+          "title": "MONITOR VITAL SIGNS",
+          "description": "Check breathing, pulse, and consciousness every 5 minutes. Note any changes. Keep detailed records for medical responders.",
+          "tip": "Use your phone to time and record observations"
+        }
+      ],
+      "importantNotes": [
+        "Take a certified first aid course",
+        "Keep first aid kit fully stocked",
+        "Know CPR and AED use",
+        "Do not move victims unless in immediate danger",
+        "Document all care provided"
+      ]
+    }
+  ],
+  "emergencyKit": [
+    {
+      "id": "kit-1",
+      "category": "Water & Food",
+      "image": "/static/images/emergency-water-food.jpg",
+      "items": [
+        {
+          "name": "Water",
+          "quantity": "1 gallon per person per day for 3 days",
+          "priority": "critical",
+          "notes": "Store in sealed containers, rotate every 6 months",
+          "image": "/static/images/emergency-water.jpg"
+        },
+        {
+          "name": "Non-perishable Food",
+          "quantity": "3-day supply per person",
+          "priority": "critical",
+          "notes": "Canned goods, energy bars, dried fruits, crackers",
+          "image": "/static/images/emergency-food.jpg"
+        },
+        {
+          "name": "Manual Can Opener",
+          "quantity": "1",
+          "priority": "high",
+          "notes": "Essential if you have canned food",
+          "image": "/static/images/emergency-can-opener.jpg"
+        },
+        {
+          "name": "Paper Plates & Utensils",
+          "quantity": "1 set per person",
+          "priority": "medium",
+          "notes": "Disposable to conserve water",
+          "image": "/static/images/emergency-utensils.jpg"
+        }
+      ]
+    },
+    {
+      "id": "kit-2",
+      "category": "First Aid & Medications",
+      "items": [
+        {
+          "name": "First Aid Kit",
+          "quantity": "1 comprehensive kit",
+          "priority": "critical",
+          "notes": "Bandages, gauze, tape, scissors, tweezers, antiseptic",
+          "image": "/static/images/emergency-first-aid-kit.jpg"
+        },
+        {
+          "name": "Prescription Medications",
+          "quantity": "7-day supply",
+          "priority": "critical",
+          "notes": "Keep list of medications and dosages",
+          "image": "/static/images/emergency-prescription.jpg"
+        },
+        {
+          "name": "Pain Relievers",
+          "quantity": "1 bottle",
+          "priority": "high",
+          "notes": "Aspirin, ibuprofen, or acetaminophen",
+          "image": "/static/images/emergency-pain-relievers.jpg"
+        },
+        {
+          "name": "Antibiotic Ointment",
+          "quantity": "1 tube",
+          "priority": "high",
+          "notes": "For treating cuts and scrapes",
+          "image": "/static/images/emergency-ointment.jpg"
+        },
+        {
+          "name": "Medical Supplies",
+          "quantity": "As needed",
+          "priority": "medium",
+          "notes": "Thermometer, blood pressure monitor, glucose meter",
+          "image": "/static/images/emergency-medical-supplies.jpg"
+        }
+      ]
+    },
+    {
+      "id": "kit-3",
+      "category": "Tools & Supplies",
+      "items": [
+        {
+          "name": "Flashlight",
+          "quantity": "1 per person",
+          "priority": "critical",
+          "notes": "LED flashlight with extra batteries",
+          "image": "/static/images/emergency-flashlight.jpg"
+        },
+        {
+          "name": "Battery-powered Radio",
+          "quantity": "1",
+          "priority": "critical",
+          "notes": "NOAA Weather Radio if possible, with extra batteries",
+          "image": "/static/images/emergency-radio.jpg"
+        },
+        {
+          "name": "Extra Batteries",
+          "quantity": "Multiple sets",
+          "priority": "high",
+          "notes": "Various sizes for all devices",
+          "image": "/static/images/emergency-batteries.jpg"
+        },
+        {
+          "name": "Whistle",
+          "quantity": "1 per person",
+          "priority": "high",
+          "notes": "To signal for help",
+          "image": "/static/images/emergency-whistle.jpg"
+        },
+        {
+          "name": "Multi-tool or Swiss Army Knife",
+          "quantity": "1",
+          "priority": "high",
+          "notes": "For various emergency tasks",
+          "image": "/static/images/emergency-multi-tool.jpg"
+        },
+        {
+          "name": "Duct Tape",
+          "quantity": "1 roll",
+          "priority": "medium",
+          "notes": "For repairs and sealing",
+          "image": "/static/images/emergency-duct-tape.jpg"
+        },
+        {
+          "name": "Plastic Sheeting",
+          "quantity": "10x10 feet",
+          "priority": "medium",
+          "notes": "For shelter and protection",
+          "image": "/static/images/emergency-plastic-sheeting.jpg"
+        },
+        {
+          "name": "Work Gloves",
+          "quantity": "1 pair per person",
+          "priority": "medium",
+          "notes": "For handling debris",
+          "image": "/static/images/emergency-work-gloves.jpg"
+        }
+      ]
+    },
+    {
+      "id": "kit-4",
+      "category": "Sanitation & Hygiene",
+      "items": [
+        {
+          "name": "Toilet Paper",
+          "quantity": "1 roll per person",
+          "priority": "high",
+          "notes": "Store in waterproof bag",
+          "image": "/static/images/emergency-toilet-paper.jpg"
+        },
+        {
+          "name": "Moist Towelettes",
+          "quantity": "1 package",
+          "priority": "high",
+          "notes": "For personal hygiene when water is limited",
+          "image": "/static/images/emergency-moist-towelettes.jpg"
+        },
+        {
+          "name": "Garbage Bags",
+          "quantity": "10-20 bags",
+          "priority": "high",
+          "notes": "For waste and sanitation",
+          "image": "/static/images/emergency-garbage-bags.jpg"
+        },
+        {
+          "name": "Hand Sanitizer",
+          "quantity": "1 bottle",
+          "priority": "high",
+          "notes": "Alcohol-based, at least 60% alcohol",
+          "image": "/static/images/emergency-hand-sanitizer.jpg"
+        },
+        {
+          "name": "Soap",
+          "quantity": "2 bars",
+          "priority": "medium",
+          "notes": "Antibacterial if possible",
+          "image": "/static/images/emergency-soap.jpg"
+        },
+        {
+          "name": "Feminine Hygiene Products",
+          "quantity": "1 month supply",
+          "priority": "medium",
+          "notes": "As needed",
+          "image": "/static/images/emergency-feminine-hygiene.jpg"
+        },
+        {
+          "name": "Toothbrush & Toothpaste",
+          "quantity": "1 set per person",
+          "priority": "low",
+          "notes": "Travel size",
+          "image": "/static/images/emergency-toothbrush-toothpaste.jpg"
+        }
+      ]
+    },
+    {
+      "id": "kit-5",
+      "category": "Clothing & Bedding",
+      "items": [
+        {
+          "name": "Change of Clothes",
+          "quantity": "1 set per person",
+          "priority": "high",
+          "notes": "Long pants, long-sleeve shirt, sturdy shoes",
+          "image": "/static/images/emergency-change-of-clothes.jpg"
+        },
+        {
+          "name": "Blanket or Sleeping Bag",
+          "quantity": "1 per person",
+          "priority": "high",
+          "notes": "For warmth and comfort",
+          "image": "/static/images/emergency-blanket.jpg"
+        },
+        {
+          "name": "Rain Gear",
+          "quantity": "1 per person",
+          "priority": "medium",
+          "notes": "Poncho or rain jacket",
+          "image": "/static/images/emergency-rain-gear.jpg"
+        },
+        {
+          "name": "Hat & Gloves",
+          "quantity": "1 set per person",
+          "priority": "medium",
+          "notes": "For cold weather protection",
+          "image": "/static/images/emergency-hat-gloves.jpg"
+        }
+      ]
+    },
+    {
+      "id": "kit-6",
+      "category": "Documents & Money",
+      "items": [
+        {
+          "name": "Important Documents",
+          "quantity": "Copies in waterproof container",
+          "priority": "critical",
+          "notes": "IDs, insurance policies, bank records, medical records",
+          "image": "/static/images/emergency-important-documents.jpg"
+        },
+        {
+          "name": "Cash",
+          "quantity": "₱5,000-10,000",
+          "priority": "high",
+          "notes": "Small bills and coins, ATMs may not work",
+          "image": "/static/images/emergency-cash.jpg"
+        },
+        {
+          "name": "Emergency Contact List",
+          "quantity": "1 copy",
+          "priority": "high",
+          "notes": "Phone numbers of family, doctors, insurance",
+          "image": "/static/images/emergency-contact-list.jpg"
+        },
+        {
+          "name": "Local Maps",
+          "quantity": "1 set",
+          "priority": "medium",
+          "notes": "Paper maps of your area",
+          "image": "/static/images/emergency-local-maps.jpg"
+        }
+      ]
+    },
+    {
+      "id": "kit-7",
+      "category": "Special Items",
+      "items": [
+        {
+          "name": "Infant Formula & Diapers",
+          "quantity": "3-day supply",
+          "priority": "critical",
+          "notes": "If you have infants",
+          "image": "/static/images/emergency-infant-formula.jpg"
+        },
+        {
+          "name": "Pet Food & Supplies",
+          "quantity": "3-day supply",
+          "priority": "high",
+          "notes": "Food, water, leash, carrier, medications",
+          "image": "/static/images/emergency-pet-food.jpg"
+        },
+        {
+          "name": "Eyeglasses & Contact Lenses",
+          "quantity": "Extra pair",
+          "priority": "high",
+          "notes": "With solution if needed",
+          "image": "/static/images/emergency-eyeglasses.jpg"
+        },
+        {
+          "name": "Phone Charger",
+          "quantity": "1 per phone",
+          "priority": "high",
+          "notes": "Portable power bank recommended",
+          "image": "/static/images/emergency-phone-charger.jpg"
+        },
+        {
+          "name": "Entertainment Items",
+          "quantity": "As desired",
+          "priority": "low",
+          "notes": "Books, games, toys for children",
+          "image": "/static/images/emergency-entertainment.jpg"
+        }
+      ]
+    }
+  ]
+}

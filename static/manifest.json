@@ -1,0 +1,33 @@
+{
+  "name": "E-TIPS - Earthquake Tips and Information Protection System",
+  "short_name": "E-TIPS",
+  "description": "Your complete survival guide for earthquake preparedness, response, and recovery in Tupi, South Cotabato",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#f77f00",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/static/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["safety", "emergency", "education"],
+  "screenshots": [
+    {
+      "src": "/static/images/screenshot-1.png",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="E-TIPS">
+    <meta name="theme-color" content="#f77f00">
+    <meta name="description" content="Earthquake Tips and Information Protection System for Tupi, South Cotabato">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/icon-192.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/icon-192.png') }}">
+    
+    <title>E-TIPS - Earthquake Tips and Information Protection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    
+    <style>
+        /* Interactive line network background */
+        #line-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* Glassmorphism effect */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Holographic effect */
+        .holographic {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .holographic::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: holographic-shine 3s infinite;
+        }
+        
+        @keyframes holographic-shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        
+        /* Particle background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(230, 57, 70, 0.3);
+            border-radius: 50%;
+            animation: float-particle 20s infinite;
+        }
+        
+        @keyframes float-particle {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+        
+        /* Glow effect on hover */
+        .glow-on-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .glow-on-hover:hover {
+            box-shadow: 0 0 20px rgba(230, 57, 70, 0.5),
+                        0 0 40px rgba(230, 57, 70, 0.3),
+                        0 0 60px rgba(230, 57, 70, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Tech grid background */
+        .tech-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(230, 57, 70, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(230, 57, 70, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Dark map tiles - make map visible */
+        .leaflet-tile-pane {
+            filter: brightness(0.6) grayscale(0.8) contrast(1.2);
+        }
+        
+        /* Black map background - fully visible */
+        #map {
+            background-color: #1a1a1a !important;
+            opacity: 1 !important;
+        }
+        
+        .leaflet-container {
+            background-color: #1a1a1a !important;
+            opacity: 1 !important;
+        }
+        
+        .map-container {
+            background-color: #000000 !important;
+            z-index: 100;
+            position: relative;
+        }
+        
+        #map-page {
+            background-color: #000000 !important;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <!-- Interactive Line Network Canvas -->
+    <canvas id="line-canvas"></canvas>
+    
+    <!-- Tech Grid Background -->
+    <div class="tech-grid"></div>
+    
+    <!-- Particle Background -->
+    <div class="particles" id="particles"></div>
+    <!-- Landing Page -->
+    <div id="landing-page" class="landing-page">
+        <div class="bg-pattern">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0,50 Q25,30 50,50 T100,50" fill="none" stroke="#e63946" stroke-width="0.5" />
+                <path d="M0,60 Q25,40 50,60 T100,60" fill="none" stroke="#e63946" stroke-width="0.5" />
+                <path d="M0,40 Q25,20 50,40 T100,40" fill="none" stroke="#e63946" stroke-width="0.5" />
+            </svg>
+        </div>
+
+        <div class="floating-icon">
+            <div class="icon-circle" style="background-color: rgba(230, 57, 70, 0.1);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="floating-icon">
+            <div class="icon-circle" style="background-color: rgba(42, 157, 143, 0.1); width: 2.5rem; height: 2.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="floating-icon">
+            <div class="icon-circle" style="background-color: rgba(247, 127, 0, 0.1); width: 3.5rem; height: 3.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div class="landing-content">
+            <div class="logo-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+            </div>
+
+            <h1 class="hero-title">E-TIPS</h1>
+            <p class="hero-subtitle">Earthquake Tips and Information</p>
+            <p class="hero-description">Protection System</p>
+
+            <div class="hero-image-container">
+                <div class="pulse-bg"></div>
+                <img src="{{ url_for('static', filename='images/hero-family.jpg') }}" alt="Family Safety" class="hero-image">
+                <div class="hero-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <p class="hero-tagline">
+                Your complete survival guide for earthquake preparedness, response, and recovery.
+            </p>
+
+            <button class="btn-primary" onclick="showView('home')">
+                <span>Stay Safe!</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        </div>
+
+        <div class="landing-footer">
+            <p>Barangay Poblacion, Tupi, South Cotabato</p>
+        </div>
+    </div>
+
+    <!-- Home Page -->
+    <div id="home-page" class="app-container hidden">
+        <div class="pb-24">
+            <!-- Header -->
+            <div class="app-header">
+                <div class="header-top">
+                    <div class="header-logo">
+                        <div class="logo-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                        </div>
+                        <div class="logo-text">
+                            <h1>E-TIPS</h1>
+                            <p>Barangay Poblacion, Tupi</p>
+                        </div>
+                    </div>
+                    <button class="notification-btn" onclick="showView('alerts')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                        </svg>
+                        <span id="notification-count" class="notification-badge hidden">0</span>
+                    </button>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-content">
+                        <div class="status-left">
+                            <p>Current Status</p>
+                            <div class="status-indicator">
+                                <div class="status-dot"></div>
+                                <span class="status-text">Normal</span>
+                            </div>
+                            <p class="status-description">No immediate threat detected</p>
+                        </div>
+                        <div class="status-right">
+                            <p class="status-count" id="earthquake-count">0</p>
+                            <p class="status-label">Recent Events</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Embedded Map Section - AT THE TOP -->
+            <div class="section mt-6">
+                <div class="section-header">
+                    <h2 class="section-title">Earthquake Map</h2>
+                </div>
+                
+                <div class="map-container-home" style="height: 400px; border-radius: 0.75rem; overflow: hidden; border: 2px solid rgba(230, 57, 70, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
+                    <div id="map-home" style="width: 100%; height: 100%;"></div>
+                </div>
+                
+                <!-- Nearest Event Card - Enhanced Design (CLICKABLE) -->
+                <div id="nearest-event-card-home" class="nearest-event-card" onclick="showNearestEarthquakeAlert()" style="position: relative; margin-top: 1rem; background: linear-gradient(135deg, rgba(29, 53, 87, 0.95), rgba(69, 123, 157, 0.95)); backdrop-filter: blur(15px); border-radius: 1rem; padding: 1.25rem; border: 2px solid rgba(230, 57, 70, 0.4); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); cursor: pointer; transition: all 0.3s ease;">
+                    <!-- Header -->
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <h3 style="color: rgba(255,255,255,0.8); font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Nearest Earthquake</h3>
+                        <div style="margin-left: auto; color: rgba(255,255,255,0.5); font-size: 0.75rem;">Click for details →</div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <!-- Location -->
+                            <h2 id="nearest-location-home" style="color: white; font-weight: 700; font-size: 1.125rem; margin: 0 0 0.75rem 0; line-height: 1.3;">Loading...</h2>
+                            
+                            <!-- Details Grid -->
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                                <!-- Distance -->
+                                <div style="display: flex; align-items: center; gap: 0.375rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2">
+                                        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                                    </svg>
+                                    <span id="nearest-distance-home" style="color: rgba(255,255,255,0.85); font-size: 0.8125rem; font-weight: 500;">-</span>
+                                </div>
+                                
+                                <!-- Magnitude -->
+                                <div style="display: flex; align-items: center; gap: 0.375rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2">
+                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                    </svg>
+                                    <span id="nearest-magnitude-home" style="color: rgba(255,255,255,0.85); font-size: 0.8125rem; font-weight: 500;">-</span>
+                                </div>
+                                
+                                <!-- Time -->
+                                <div style="display: flex; align-items: center; gap: 0.375rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                    <span id="nearest-time-home" style="color: rgba(255,255,255,0.85); font-size: 0.8125rem; font-weight: 500;">-</span>
+                                </div>
+                                
+                                <!-- Depth -->
+                                <div style="display: flex; align-items: center; gap: 0.375rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                    <span id="nearest-depth-home" style="color: rgba(255,255,255,0.85); font-size: 0.8125rem; font-weight: 500;">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Risk Badge -->
+                        <div id="nearest-risk-badge-home" style="flex-shrink: 0;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Earthquakes with Clickable Cards -->
+            <div class="section mt-6">
+                <div class="section-header">
+                    <h2 class="section-title">Recent Earthquakes</h2>
+                </div>
+
+                <div id="earthquake-list" class="earthquake-list">
+                    <!-- Earthquakes will be loaded here as clickable cards -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guides Page -->
+    <div id="guides-page" class="app-container hidden">
+        <div class="pb-24">
+            <div class="app-header">
+                <div class="header-top">
+                    <button onclick="showView('home')" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="header-logo">
+                        <div class="logo-text">
+                            <h1>Safety Guides</h1>
+                        </div>
+                    </div>
+                    <div style="width: 2.5rem;"></div>
+                </div>
+            </div>
+            
+            <div class="section mt-6">
+                <h2 class="section-title" style="color: white; margin-bottom: 1rem;">Earthquake Preparedness Guide</h2>
+                
+                <div style="background: rgba(247, 127, 0, 0.1); border: 1px solid rgba(247, 127, 0, 0.3); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem;">
+                    <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem; line-height: 1.6;">
+                        📚 Click on each guide below to expand and learn essential earthquake safety procedures.
+                    </p>
+                </div>
+                
+                <!-- Before Earthquake Card - Clickable/Expandable -->
+                <div class="guide-card" onclick="toggleGuideCard('before-guide')" style="background: linear-gradient(135deg, rgba(69, 123, 157, 0.2), rgba(69, 123, 157, 0.1)); border: 1px solid rgba(69, 123, 157, 0.3); border-radius: 1rem; overflow: hidden; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s ease;">
+                    <div style="position: relative; width: 100%; height: 180px; background: linear-gradient(135deg, #457b9d 0%, #1d3557 100%); overflow: hidden;">
+                        <img src="{{ url_for('static', filename='images/before-earthquake.jpg') }}" alt="Before Earthquake" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.5;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.7));"></div>
+                        <div style="position: absolute; bottom: 1rem; left: 1rem; right: 1rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div style="width: 3.5rem; height: 3.5rem; background: rgba(69, 123, 157, 0.9); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 style="color: white; font-weight: 700; font-size: 1.25rem;">BEFORE Earthquake</h3>
+                                        <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem;">🛡️ Prepare & Plan</p>
+                                    </div>
+                                </div>
+                                <div class="expand-icon-guide" id="icon-before-guide" style="color: white; transition: transform 0.3s ease;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="before-guide" class="guide-content" style="display: none; padding: 1.5rem; background: rgba(69, 123, 157, 0.05);">
+                        <h4 style="color: white; font-weight: 700; margin-bottom: 1rem;">📋 Preparation Checklist:</h4>
+                        <ul style="color: rgba(255,255,255,0.85); font-size: 0.9375rem; line-height: 2; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                            <li><strong style="color: #457b9d;">✓ Secure Your Space:</strong> Anchor heavy furniture and appliances to walls</li>
+                            <li><strong style="color: #457b9d;">✓ Emergency Kit:</strong> Prepare 72-hour supplies (water, food, first aid)</li>
+                            <li><strong style="color: #457b9d;">✓ Identify Safe Spots:</strong> Locate sturdy tables in each room</li>
+                            <li><strong style="color: #457b9d;">✓ Family Plan:</strong> Establish meeting points and communication</li>
+                            <li><strong style="color: #457b9d;">✓ Practice Drills:</strong> Monthly DROP, COVER, HOLD ON practice</li>
+                            <li><strong style="color: #457b9d;">✓ Documents:</strong> Keep vital papers in waterproof container</li>
+                        </ul>
+                        <div style="background: rgba(69, 123, 157, 0.2); border-left: 4px solid #457b9d; padding: 1rem; border-radius: 0.5rem;">
+                            <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem;">
+                                <strong>💡 Pro Tip:</strong> Review your plan every 6 months and check kit expiration dates.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- During Earthquake Card - Clickable/Expandable -->
+                <div class="guide-card" onclick="toggleGuideCard('during-guide')" style="background: linear-gradient(135deg, rgba(230, 57, 70, 0.2), rgba(230, 57, 70, 0.1)); border: 1px solid rgba(230, 57, 70, 0.3); border-radius: 1rem; overflow: hidden; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s ease;">
+                    <div style="position: relative; width: 100%; height: 180px; background: linear-gradient(135deg, #e63946 0%, #a4161a 100%); overflow: hidden;">
+                        <img src="{{ url_for('static', filename='images/during-earthquake.jpg') }}" alt="During Earthquake" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.5;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.7));"></div>
+                        <div style="position: absolute; bottom: 1rem; left: 1rem; right: 1rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div style="width: 3.5rem; height: 3.5rem; background: rgba(230, 57, 70, 0.9); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 style="color: white; font-weight: 700; font-size: 1.25rem;">DURING Earthquake</h3>
+                                        <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem;">⚠️ Drop, Cover, Hold On</p>
+                                    </div>
+                                </div>
+                                <div class="expand-icon-guide" id="icon-during-guide" style="color: white; transition: transform 0.3s ease;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="during-guide" class="guide-content" style="display: none; padding: 1.5rem; background: rgba(230, 57, 70, 0.05);">
+                        <div style="background: rgba(230, 57, 70, 0.15); border: 2px solid #e63946; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem;">
+                            <h5 style="color: #e63946; font-weight: 700; font-size: 1.125rem; margin-bottom: 1rem; text-align: center;">THE GOLDEN RULE</h5>
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem;">
+                                    <h6 style="color: #e63946; font-weight: 700; margin-bottom: 0.5rem;">1️⃣ DROP</h6>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 0.9375rem;">Drop to hands and knees immediately</p>
+                                </div>
+                                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem;">
+                                    <h6 style="color: #e63946; font-weight: 700; margin-bottom: 0.5rem;">2️⃣ COVER</h6>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 0.9375rem;">Cover head and neck under sturdy table</p>
+                                </div>
+                                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem;">
+                                    <h6 style="color: #e63946; font-weight: 700; margin-bottom: 0.5rem;">3️⃣ HOLD ON</h6>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 0.9375rem;">Hold shelter until shaking stops</p>
+                                </div>
+                            </div>
+                        </div>
+                        <h4 style="color: white; font-weight: 700; margin-bottom: 1rem;">📍 Location Actions:</h4>
+                        <ul style="color: rgba(255,255,255,0.85); font-size: 0.9375rem; line-height: 2; padding-left: 1.5rem; margin-bottom: 1rem;">
+                            <li><strong style="color: #e63946;">🏠 Indoors:</strong> Stay inside, away from windows</li>
+                            <li><strong style="color: #e63946;">🌳 Outdoors:</strong> Move to open area, away from buildings</li>
+                            <li><strong style="color: #e63946;">🚗 Vehicle:</strong> Pull over safely, stay inside</li>
+                            <li><strong style="color: #e63946;">🏢 High-Rise:</strong> No elevators, stay away from windows</li>
+                        </ul>
+                        <div style="background: rgba(230, 57, 70, 0.2); border-left: 4px solid #e63946; padding: 1rem; border-radius: 0.5rem;">
+                            <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem;">
+                                <strong>⚠️ Warning:</strong> Most injuries from falling objects. Protect your head and neck!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- After Earthquake Card - Clickable/Expandable -->
+                <div class="guide-card" onclick="toggleGuideCard('after-guide')" style="background: linear-gradient(135deg, rgba(42, 157, 143, 0.2), rgba(42, 157, 143, 0.1)); border: 1px solid rgba(42, 157, 143, 0.3); border-radius: 1rem; overflow: hidden; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s ease;">
+                    <div style="position: relative; width: 100%; height: 180px; background: linear-gradient(135deg, #2a9d8f 0%, #1b7f72 100%); overflow: hidden;">
+                        <img src="{{ url_for('static', filename='images/after-earthquake.jpg') }}" alt="After Earthquake" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.5;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.7));"></div>
+                        <div style="position: absolute; bottom: 1rem; left: 1rem; right: 1rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div style="width: 3.5rem; height: 3.5rem; background: rgba(42, 157, 143, 0.9); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 style="color: white; font-weight: 700; font-size: 1.25rem;">AFTER Earthquake</h3>
+                                        <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem;">✅ Recover & Stay Safe</p>
+                                    </div>
+                                </div>
+                                <div class="expand-icon-guide" id="icon-after-guide" style="color: white; transition: transform 0.3s ease;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="after-guide" class="guide-content" style="display: none; padding: 1.5rem; background: rgba(42, 157, 143, 0.05);">
+                        <h4 style="color: white; font-weight: 700; margin-bottom: 1rem;">🏥 Recovery Steps:</h4>
+                        <ul style="color: rgba(255,255,255,0.85); font-size: 0.9375rem; line-height: 2; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                            <li><strong style="color: #2a9d8f;">✓ Check Injuries:</strong> Provide first aid, get medical help</li>
+                            <li><strong style="color: #2a9d8f;">✓ Inspect Home:</strong> Check for structural damage carefully</li>
+                            <li><strong style="color: #2a9d8f;">✓ Gas & Utilities:</strong> Turn off gas if you smell leaks</li>
+                            <li><strong style="color: #2a9d8f;">✓ Stay Informed:</strong> Listen to radio or E-TIPS for updates</li>
+                            <li><strong style="color: #2a9d8f;">✓ Expect Aftershocks:</strong> Be ready to DROP, COVER, HOLD ON</li>
+                            <li><strong style="color: #2a9d8f;">✓ Help Others:</strong> Check on neighbors who need assistance</li>
+                        </ul>
+                        <div style="background: rgba(230, 57, 70, 0.15); border: 2px solid #e63946; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem;">
+                            <h5 style="color: #e63946; font-weight: 700; margin-bottom: 0.5rem;">🚫 DO NOT:</h5>
+                            <ul style="color: rgba(255,255,255,0.9); font-size: 0.875rem; padding-left: 1.25rem;">
+                                <li>Use matches or flames until sure no gas leaks</li>
+                                <li>Turn on lights until checked for damage</li>
+                                <li>Enter damaged buildings</li>
+                                <li>Drive unless absolutely necessary</li>
+                            </ul>
+                        </div>
+                        <div style="background: rgba(42, 157, 143, 0.2); border-left: 4px solid #2a9d8f; padding: 1rem; border-radius: 0.5rem;">
+                            <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem;">
+                                <strong>💡 Tip:</strong> Emotional recovery is important. Talk about your experience and seek help if needed.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Page -->
+    <div id="alerts-page" class="app-container hidden">
+        <div class="pb-24">
+            <div class="app-header">
+                <div class="header-top">
+                    <button onclick="showView('home')" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="header-logo">
+                        <div class="logo-text">
+                            <h1>Emergency Alerts</h1>
+                        </div>
+                    </div>
+                    <div style="width: 2.5rem;"></div>
+                </div>
+            </div>
+            
+            <div class="section mt-6">
+                <h2 class="section-title" style="color: white; margin-bottom: 1rem;">Active Warnings & Notifications</h2>
+                
+                <!-- Alert notifications will be dynamically loaded here -->
+                <div id="alerts-list">
+                    <!-- Alert cards will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="section mt-6">
+                <div style="background: rgba(69, 123, 157, 0.1); border: 1px solid rgba(69, 123, 157, 0.3); border-radius: 0.75rem; padding: 1rem;">
+                    <div style="display: flex; align-items: start; gap: 0.75rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#457b9d" stroke-width="2" style="flex-shrink: 0; margin-top: 0.125rem;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <div>
+                            <h4 style="color: white; font-weight: 600; margin-bottom: 0.5rem;">Stay Informed</h4>
+                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Click on any alert to view detailed information and AI-powered risk assessment for your location.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Page -->
+    <div id="community-page" class="app-container hidden">
+        <!-- Community Main Page -->
+        <div id="community-main" class="pb-24">
+            <div class="app-header">
+                <div class="header-top">
+                    <button onclick="showView('home')" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="header-logo">
+                        <div class="logo-text">
+                            <h1>Community Resources</h1>
+                        </div>
+                    </div>
+                    <div style="width: 2.5rem;"></div>
+                </div>
+            </div>
+            
+            <!-- Community Header -->
+            <div class="section mt-6">
+                <div class="community-header">
+                    <h2 style="color: white; font-weight: 700; font-size: 1.25rem; margin-bottom: 0.5rem;">🤝 Earthquake Preparedness Hub</h2>
+                    <p style="color: rgba(255,255,255,0.8); font-size: 0.875rem; line-height: 1.6;">
+                        Access comprehensive safety resources, drill tutorials, and emergency preparedness guides. Everything you need to stay safe during earthquakes.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Category Cards -->
+            <div class="section mt-6">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <!-- Safety Tips Card -->
+                    <div onclick="showCommunityCategory('safety-tips')" style="background: linear-gradient(135deg, rgba(247, 127, 0, 0.2), rgba(247, 127, 0, 0.1)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(247, 127, 0, 0.3); cursor: pointer; transition: all 0.3s ease;" class="category-card">
+                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(247, 127, 0, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <h3 style="color: white; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Safety Tips</h3>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Essential earthquake safety tips for before, during, and after</p>
+                    </div>
+                    
+                    <!-- Reminders Card -->
+                    <div onclick="showCommunityCategory('reminders')" style="background: linear-gradient(135deg, rgba(247, 127, 0, 0.2), rgba(247, 127, 0, 0.1)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(247, 127, 0, 0.3); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;" class="category-card">
+                        <!-- Background Images Preview (showing all 6 images) -->
+                        <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 40%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); opacity: 0.15; pointer-events: none;">
+                            <img src="{{ url_for('static', filename='images/reminder-1.jpg') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="{{ url_for('static', filename='images/reminder-2.jpg') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="{{ url_for('static', filename='images/reminder-3.jpg') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="{{ url_for('static', filename='images/reminder-4.jpg') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="{{ url_for('static', filename='images/reminder-5.jpg') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="{{ url_for('static', filename='images/reminder-6.jpg') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        
+                        <!-- Content -->
+                        <div style="position: relative; z-index: 1;">
+                            <div style="width: 3.5rem; height: 3.5rem; background: rgba(247, 127, 0, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
+                                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                                </svg>
+                            </div>
+                            <h3 style="color: white; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Reminders</h3>
+                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Important preparedness reminders and maintenance schedules</p>
+                            
+                            <!-- Small Image Previews (showing all 6) -->
+                            <div style="display: flex; gap: 0.25rem; margin-top: 0.75rem; flex-wrap: wrap;">
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                    <img src="{{ url_for('static', filename='images/reminder-1.jpg') }}" alt="Reminder 1" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                    <img src="{{ url_for('static', filename='images/reminder-2.jpg') }}" alt="Reminder 2" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                    <img src="{{ url_for('static', filename='images/reminder-3.jpg') }}" alt="Reminder 3" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                    <img src="{{ url_for('static', filename='images/reminder-4.jpg') }}" alt="Reminder 4" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                    <img src="{{ url_for('static', filename='images/reminder-5.jpg') }}" alt="Reminder 5" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                    <img src="{{ url_for('static', filename='images/reminder-6.jpg') }}" alt="Reminder 6" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Drill Tutorials Card -->
+                    <div onclick="showCommunityCategory('drill-tutorials')" style="background: linear-gradient(135deg, rgba(247, 127, 0, 0.2), rgba(247, 127, 0, 0.1)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(247, 127, 0, 0.3); cursor: pointer; transition: all 0.3s ease;" class="category-card">
+                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(247, 127, 0, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                        </div>
+                        <h3 style="color: white; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Drill Tutorials</h3>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Step-by-step emergency drill instructions and procedures</p>
+                    </div>
+                    
+                    <!-- Emergency Kit Card -->
+                    <div onclick="showCommunityCategory('emergency-kit')" style="background: linear-gradient(135deg, rgba(247, 127, 0, 0.2), rgba(247, 127, 0, 0.1)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(247, 127, 0, 0.3); cursor: pointer; transition: all 0.3s ease;" class="category-card">
+                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(247, 127, 0, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <h3 style="color: white; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Emergency Kit</h3>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Complete checklist of essential emergency supplies</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Daily Safety Tips -->
+            <div class="section community-section">
+                <h3 class="community-section-title">💡 Daily Safety Tips</h3>
+                <div class="tip-card">
+                    <span class="tip-number">1</span>
+                    <span class="tip-text">Keep a flashlight and sturdy shoes by your bed</span>
+                </div>
+                <div class="tip-card">
+                    <span class="tip-number">2</span>
+                    <span class="tip-text">Know how to turn off gas, water, and electricity</span>
+                </div>
+                <div class="tip-card">
+                    <span class="tip-number">3</span>
+                    <span class="tip-text">Have a family communication plan</span>
+                </div>
+                <div class="tip-card">
+                    <span class="tip-number">4</span>
+                    <span class="tip-text">Keep important documents in a waterproof container</span>
+                </div>
+                <div class="tip-card">
+                    <span class="tip-number">5</span>
+                    <span class="tip-text">Practice DROP, COVER, and HOLD ON monthly</span>
+                </div>
+            </div>
+
+            <!-- Upcoming Programs -->
+            <div class="section community-section">
+                <h3 class="community-section-title">📅 Upcoming Programs</h3>
+                <div class="event-card">
+                    <span class="event-badge drill">DRILL</span>
+                    <h4 class="event-title">Barangay Earthquake Drill</h4>
+                    <p class="event-description">Join the monthly earthquake drill at Barangay Poblacion covered court. Practice your emergency response skills.</p>
+                    <div class="event-meta">
+                        <span>📅 Jan 26, 2024</span>
+                        <span>📍 Barangay Poblacion Covered Court</span>
+                    </div>
+                </div>
+                
+                <div class="event-card">
+                    <span class="event-badge workshop">WORKSHOP</span>
+                    <h4 class="event-title">Family Emergency Planning Workshop</h4>
+                    <p class="event-description">Learn how to create a comprehensive family emergency plan. Free materials and refreshments provided.</p>
+                    <div class="event-meta">
+                        <span>📅 Feb 10, 2024</span>
+                        <span>📍 Tupi Municipal Hall</span>
+                    </div>
+                </div>
+                
+                <div class="event-card">
+                    <span class="event-badge training">TRAINING</span>
+                    <h4 class="event-title">First Aid & CPR Training</h4>
+                    <p class="event-description">Basic first aid and CPR training for community members. Certification provided upon completion.</p>
+                    <div class="event-meta">
+                        <span>📅 Feb 17, 2024</span>
+                        <span>📍 Tupi Health Center</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Emergency Contacts -->
+            <div class="section community-section">
+                <h3 class="community-section-title">📞 Emergency Contacts</h3>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.875rem; margin-bottom: 1rem;">Tap any contact to call directly</p>
+                
+                <div class="contact-card" onclick="requestCallPermission('PHIVOLCS', '02-8426-1468', 'tel:+6284261468')" style="cursor: pointer; transition: all 0.3s ease;">
+                    <div class="contact-info">
+                        <h4>PHIVOLCS</h4>
+                        <span class="contact-number">(02) 8426-1468</span>
+                    </div>
+                    <div class="contact-icon" style="background: rgba(230, 57, 70, 0.2); padding: 0.75rem; border-radius: 50%;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="contact-card" onclick="requestCallPermission('PDRRMO South Cotabato', '083-228-1277', 'tel:+63832281277')" style="cursor: pointer; transition: all 0.3s ease;">
+                    <div class="contact-info">
+                        <h4>PDRRMO South Cotabato</h4>
+                        <span class="contact-number">(083) 228-1277</span>
+                    </div>
+                    <div class="contact-icon" style="background: rgba(230, 57, 70, 0.2); padding: 0.75rem; border-radius: 50%;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="contact-card" onclick="requestCallPermission('Tupi MDRRMO', '083-238-1001', 'tel:+63832381001')" style="cursor: pointer; transition: all 0.3s ease;">
+                    <div class="contact-info">
+                        <h4>Tupi MDRRMO</h4>
+                        <span class="contact-number">(083) 238-1001</span>
+                    </div>
+                    <div class="contact-icon" style="background: rgba(230, 57, 70, 0.2); padding: 0.75rem; border-radius: 50%;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="contact-card" onclick="requestCallPermission('Barangay Poblacion', '083-238-1002', 'tel:+63832381002')" style="cursor: pointer; transition: all 0.3s ease;">
+                    <div class="contact-info">
+                        <h4>Barangay Poblacion</h4>
+                        <span class="contact-number">(083) 238-1002</span>
+                    </div>
+                    <div class="contact-icon" style="background: rgba(230, 57, 70, 0.2); padding: 0.75rem; border-radius: 50%;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Privacy Notice -->
+                <div style="background: rgba(69, 123, 157, 0.1); border-radius: 0.75rem; padding: 1rem; margin-top: 1rem; border-left: 4px solid #457b9d;">
+                    <p style="color: rgba(255,255,255,0.8); font-size: 0.875rem; line-height: 1.6;">
+                        <strong style="color: #457b9d;">🔒 Privacy Notice:</strong> When you tap a contact, E-TIPS will request permission to access your phone's dialer. We only use this to help you make emergency calls. Your contact information is never stored or shared.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Useful Links -->
+            <div class="section community-section">
+                <h3 class="community-section-title">🔗 Useful Links</h3>
+                <div style="display: grid; gap: 0.75rem;">
+                    <!-- PHIVOLCS -->
+                    <a href="https://www.phivolcs.dost.gov.ph/" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 255, 255, 0.05); border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(69, 123, 157, 0.5)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+                        <div style="width: 2.5rem; height: 2.5rem; background: rgba(69, 123, 157, 0.2); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#457b9d" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="color: white; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                                PHIVOLCS Website
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </h4>
+                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; margin: 0;">Official earthquake information and updates from Philippines</p>
+                        </div>
+                    </a>
+                    
+                    <!-- USGS -->
+                    <a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 255, 255, 0.05); border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(230, 57, 70, 0.5)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+                        <div style="width: 2.5rem; height: 2.5rem; background: rgba(230, 57, 70, 0.2); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="color: white; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                                USGS Earthquakes
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </h4>
+                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; margin: 0;">Global seismic data and real-time monitoring</p>
+                        </div>
+                    </a>
+                    
+                    <!-- Ready.gov -->
+                    <a href="https://www.ready.gov/earthquakes" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 255, 255, 0.05); border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(42, 157, 143, 0.5)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+                        <div style="width: 2.5rem; height: 2.5rem; background: rgba(42, 157, 143, 0.2); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="color: white; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                                Ready.gov
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </h4>
+                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; margin: 0;">Comprehensive disaster preparedness resources</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Safety Tips Page -->
+        <div id="safety-tips-page" class="category-page pb-24 hidden">
+            <div class="app-header">
+                <div class="header-top">
+                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="header-logo">
+                        <div class="logo-text">
+                            <h1>Safety Tips</h1>
+                        </div>
+                    </div>
+                    <div style="width: 2.5rem;"></div>
+                </div>
+            </div>
+            
+            <div class="section mt-6">
+                <div id="safety-tips-list"></div>
+            </div>
+        </div>
+        
+        <!-- Reminders Page -->
+        <div id="reminders-page" class="category-page pb-24 hidden">
+            <div class="app-header">
+                <div class="header-top">
+                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="header-logo">
+                        <div class="logo-text">
+                            <h1>Preparedness Reminders</h1>
+                        </div>
+                    </div>
+                    <div style="width: 2.5rem;"></div>
+                </div>
+            </div>
+            
+            <div class="section mt-6">
+                <div id="reminders-list"></div>
+            </div>
+        </div>
+        
+        <!-- Drill Tutorials Page -->
+        <div id="drill-tutorials-page" class="category-page pb-24 hidden">
+            <div class="app-header">
+                <div class="header-top">
+                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="header-logo">
+                        <div class="logo-text">
+                            <h1>Drill Tutorials</h1>
+                        </div>
+                    </div>
+                    <div style="width: 2.5rem;"></div>
+                </div>
+            </div>
+            
+            <div class="section mt-6">
+                <div id="drill-tutorials-list"></div>
+            </div>
+        </div>
+        
+        <!-- Drill Detail Page -->
+        <div id="drill-detail-page" class="category-page pb-24 hidden">
+            <div class="app-header">
+                <div class="header-top">
+                    <button onclick="backToDrillTutorials()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="header-logo">
+                        <div class="logo-text">
+                            <h1 id="drill-detail-title">Drill Tutorial</h1>
+                        </div>
+                    </div>
+                    <div style="width: 2.5rem;"></div>
+                </div>
+            </div>
+            
+            <div class="section mt-6">
+                <!-- Drill Header -->
+                <div style="position: relative; height: 180px; background: linear-gradient(135deg, rgba(230, 57, 70, 0.3), rgba(247, 127, 0, 0.3)); border-radius: 1rem; overflow: hidden; margin-bottom: 1.5rem;">
+                    <img id="drill-detail-image" src="" alt="Drill" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.4;">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8));"></div>
+                    <div style="position: absolute; bottom: 1rem; left: 1rem; right: 1rem;">
+                        <p id="drill-detail-description" style="color: rgba(255,255,255,0.9); font-size: 0.875rem; line-height: 1.5; margin-bottom: 0.75rem;"></p>
+                        <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; color: rgba(255,255,255,0.9);">
+                            <span>⏱️ <span id="drill-detail-duration"></span></span>
+                            <span>📊 <span id="drill-detail-difficulty"></span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Steps -->
+                <h3 style="color: white; font-weight: 700; font-size: 1.125rem; margin-bottom: 1rem;">📋 Step-by-Step Instructions</h3>
+                <div id="drill-detail-steps"></div>
+                
+                <!-- Important Notes -->
+                <h3 style="color: white; font-weight: 700; font-size: 1.125rem; margin-top: 2rem; margin-bottom: 1rem;">⚠️ Important Notes</h3>
+                <div id="drill-detail-notes"></div>
+            </div>
+        </div>
+        
+        <!-- Emergency Kit Page -->
+        <div id="emergency-kit-page" class="category-page pb-24 hidden">
+            <div class="app-header">
+                <div class="header-top">
+                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="header-logo">
+                        <div class="logo-text">
+                            <h1>Emergency Kit Guide</h1>
+                        </div>
+                    </div>
+                    <div style="width: 2.5rem;"></div>
+                </div>
+            </div>
+            
+            <div class="section mt-6">
+                <div style="background: rgba(230, 57, 70, 0.1); border: 1px solid rgba(230, 57, 70, 0.3); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem;">
+                    <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem; line-height: 1.6;">
+                        ✅ Check off items as you add them to your emergency kit. Aim to have supplies for at least 72 hours.
+                    </p>
+                </div>
+                <div id="emergency-kit-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Page (Hidden - Map now on Home) -->
+    <div id="map-page" class="app-container hidden" style="display: none;">
+        <!-- Map page kept for compatibility but hidden -->
+    </div>
+
+    <!-- SINGLE FIXED BOTTOM NAVIGATION - OUTSIDE ALL PAGES -->
+    <nav class="bottom-nav">
+        <button class="nav-item" onclick="showView('home')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+        </button>
+        <button class="nav-item" onclick="showView('guides')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>Guides</span>
+        </button>
+        <button class="nav-item" onclick="showView('alerts')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+            </svg>
+            <span>Alerts</span>
+        </button>
+        <button class="nav-item" onclick="showView('community')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>Community</span>
+        </button>
+    </nav>
+
+    <!-- Earthquake Detail Modal -->
+    <div id="earthquake-detail-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">📍 Earthquake Details</h3>
+                <button class="close-btn" onclick="closeEarthquakeDetailModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="earthquake-detail-content">
+                <!-- Earthquake details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="loading-container">
+                <div class="loading-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                </div>
+                <h3 class="loading-title">Analyzing Risk...</h3>
+                <p class="loading-text">Our AI is processing seismic data for your location.</p>
+                <div class="loading-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Assessment Modal -->
+    <div id="risk-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🤖 AI Risk Assessment</h3>
+                <button class="close-btn" onclick="closeRiskModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="risk-content">
+                <!-- Risk assessment content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- All Earthquakes Modal -->
+    <div id="all-earthquakes-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">📍 All Earthquakes</h3>
+                <button class="close-btn" onclick="closeAllEarthquakesModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="all-earthquakes-content" style="max-height: 60vh; overflow-y: auto;">
+                <!-- All earthquakes will be loaded here -->
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    <script>
+        // ============================================
+        // REAL OAUTH INITIALIZATION
+        // ============================================
+        
+        // OAuth Configuration
+        // Set enabled: true and add your real credentials to use OAuth
+        const OAUTH_CONFIG = {
+            google: {
+                clientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // Replace with your Google Client ID
+                enabled: false // Set to true after adding real Client ID
+            },
+            facebook: {
+                appId: 'YOUR_FACEBOOK_APP_ID', // Replace with your Facebook App ID
+                enabled: false // Set to true after adding real App ID
+            },
+            apple: {
+                clientId: 'YOUR_APPLE_CLIENT_ID', // Replace with your Apple Client ID
+                enabled: false // Set to true after adding real Client ID
+            }
+        };
+        
+        // Check if OAuth credentials are configured
+        function isOAuthConfigured(provider) {
+            const config = OAUTH_CONFIG[provider];
+            if (!config || !config.enabled) return false;
+            
+            // Check if placeholder values are still being used
+            if (provider === 'google' && config.clientId.includes('YOUR_GOOGLE_CLIENT_ID')) return false;
+            if (provider === 'facebook' && config.appId.includes('YOUR_FACEBOOK_APP_ID')) return false;
+            if (provider === 'apple' && config.clientId.includes('YOUR_APPLE_CLIENT_ID')) return false;
+            
+            return true;
+        }
+        
+        // Initialize OAuth providers when page loads
+        window.addEventListener('load', function() {
+            initializeOAuthProviders();
+        });
+        
+        function initializeOAuthProviders() {
+            // Initialize Google OAuth only if properly configured
+            if (isOAuthConfigured('google') && typeof google !== 'undefined') {
+                try {
+                    google.accounts.id.initialize({
+                        client_id: OAUTH_CONFIG.google.clientId,
+                        callback: handleGoogleCallback,
+                        auto_select: false,
+                        cancel_on_tap_outside: true
+                    });
+                    console.log('✅ Google OAuth initialized');
+                } catch (error) {
+                    console.warn('⚠️ Google OAuth initialization failed:', error);
+                }
+            } else {
+                console.log('ℹ️ Google OAuth not configured - using demo mode');
+            }
+            
+            // Initialize Facebook SDK only if properly configured
+            if (isOAuthConfigured('facebook') && typeof FB !== 'undefined') {
+                try {
+                    window.fbAsyncInit = function() {
+                        FB.init({
+                            appId: OAUTH_CONFIG.facebook.appId,
+                            cookie: true,
+                            xfbml: true,
+                            version: 'v18.0'
+                        });
+                        console.log('✅ Facebook SDK initialized');
+                    };
+                } catch (error) {
+                    console.warn('⚠️ Facebook SDK initialization failed:', error);
+                }
+            } else {
+                console.log('ℹ️ Facebook OAuth not configured - using demo mode');
+            }
+            
+            // Initialize Apple Sign In only if properly configured
+            if (isOAuthConfigured('apple') && typeof AppleID !== 'undefined') {
+                try {
+                    AppleID.auth.init({
+                        clientId: OAUTH_CONFIG.apple.clientId,
+                        scope: 'name email',
+                        redirectURI: window.location.origin,
+                        usePopup: true
+                    });
+                    console.log('✅ Apple Sign In initialized');
+                } catch (error) {
+                    console.warn('⚠️ Apple Sign In initialization failed:', error);
+                }
+            } else {
+                console.log('ℹ️ Apple Sign In not configured - using demo mode');
+            }
+        }
+        
+        // ============================================
+        // REAL GOOGLE OAUTH
+        // ============================================
+        
+        // Override the mock Google login with real OAuth (only if configured)
+        window.loginWithGoogleReal = function() {
+            if (!isOAuthConfigured('google')) {
+                console.log('ℹ️ Google OAuth not configured - using demo mode');
+                showLoadingToast('Using demo Google login...');
+                // Use mock login
+                setTimeout(() => {
+                    const mockGoogleUser = {
+                        id: 'google_' + Date.now(),
+                        name: 'Demo Google User',
+                        email: 'demo@gmail.com',
+                        avatar: 'https://ui-avatars.com/api/?name=Demo+Google+User&background=4285F4&color=fff&size=128',
+                        provider: 'google',
+                        loginTime: new Date().toISOString()
+                    };
+                    completeLogin(mockGoogleUser);
+                    saveAccountToList('google', mockGoogleUser);
+                }, 1000);
+                return;
+            }
+            
+            if (typeof google === 'undefined') {
+                showErrorToast('Google Sign-In not available. Please check your internet connection.');
+                return;
+            }
+            
+            showLoadingToast('Opening Google Sign-In...');
+            
+            try {
+                // Trigger Google One Tap or redirect to Google OAuth
+                google.accounts.id.prompt((notification) => {
+                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        // Fallback to redirect flow
+                        const client = google.accounts.oauth2.initTokenClient({
+                            client_id: OAUTH_CONFIG.google.clientId,
+                            scope: 'profile email',
+                            callback: (response) => {
+                                if (response.access_token) {
+                                    fetchGoogleUserInfo(response.access_token);
+                                }
+                            }
+                        });
+                        client.requestAccessToken();
+                    }
+                });
+            } catch (error) {
+                console.error('Google OAuth error:', error);
+                showErrorToast('Google login failed. Using demo mode.');
+                // Fallback to mock
+                setTimeout(() => {
+                    const mockGoogleUser = {
+                        id: 'google_' + Date.now(),
+                        name: 'Demo Google User',
+                        email: 'demo@gmail.com',
+                        avatar: 'https://ui-avatars.com/api/?name=Demo+Google+User&background=4285F4&color=fff&size=128',
+                        provider: 'google',
+                        loginTime: new Date().toISOString()
+                    };
+                    completeLogin(mockGoogleUser);
+                    saveAccountToList('google', mockGoogleUser);
+                }, 1000);
+            }
+        };
+        
+        // Handle Google OAuth callback
+        function handleGoogleCallback(response) {
+            if (response.credential) {
+                // Decode JWT token to get user info
+                const userInfo = parseJwt(response.credential);
+                
+                const googleUser = {
+                    id: 'google_' + userInfo.sub,
+                    name: userInfo.name,
+                    email: userInfo.email,
+                    avatar: userInfo.picture,
+                    provider: 'google',
+                    loginTime: new Date().toISOString()
+                };
+                
+                completeLogin(googleUser);
+                saveAccountToList('google', googleUser);
+            }
+        }
+        
+        // Fetch Google user info with access token
+        function fetchGoogleUserInfo(accessToken) {
+            fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const googleUser = {
+                    id: 'google_' + data.id,
+                    name: data.name,
+                    email: data.email,
+                    avatar: data.picture,
+                    provider: 'google',
+                    loginTime: new Date().toISOString()
+                };
+                
+                completeLogin(googleUser);
+                saveAccountToList('google', googleUser);
+            })
+            .catch(error => {
+                console.error('Error fetching Google user info:', error);
+                showErrorToast('Failed to get Google account information');
+            });
+        }
+        
+        // ============================================
+        // REAL FACEBOOK OAUTH
+        // ============================================
+        
+        // Override the mock Facebook login with real OAuth (only if configured)
+        window.loginWithFacebookReal = function() {
+            if (!isOAuthConfigured('facebook')) {
+                console.log('ℹ️ Facebook OAuth not configured - using demo mode');
+                showLoadingToast('Using demo Facebook login...');
+                // Use mock login
+                setTimeout(() => {
+                    const mockFacebookUser = {
+                        id: 'facebook_' + Date.now(),
+                        name: 'Demo Facebook User',
+                        email: 'demo@facebook.com',
+                        avatar: 'https://ui-avatars.com/api/?name=Demo+Facebook+User&background=1877F2&color=fff&size=128',
+                        provider: 'facebook',
+                        loginTime: new Date().toISOString()
+                    };
+                    completeLogin(mockFacebookUser);
+                    saveAccountToList('facebook', mockFacebookUser);
+                }, 1000);
+                return;
+            }
+            
+            if (typeof FB === 'undefined') {
+                showErrorToast('Facebook Login not available. Please check your internet connection.');
+                return;
+            }
+            
+            showLoadingToast('Opening Facebook Login...');
+            
+            try {
+                FB.login(function(response) {
+                    if (response.authResponse) {
+                        // User logged in successfully
+                        FB.api('/me', { fields: 'id,name,email,picture' }, function(userData) {
+                            const facebookUser = {
+                                id: 'facebook_' + userData.id,
+                                name: userData.name,
+                                email: userData.email || 'No email provided',
+                                avatar: userData.picture.data.url,
+                                provider: 'facebook',
+                                loginTime: new Date().toISOString()
+                            };
+                            
+                            completeLogin(facebookUser);
+                            saveAccountToList('facebook', facebookUser);
+                        });
+                    } else {
+                        showErrorToast('Facebook login cancelled');
+                    }
+                }, { scope: 'public_profile,email' });
+            } catch (error) {
+                console.error('Facebook OAuth error:', error);
+                showErrorToast('Facebook login failed. Using demo mode.');
+                // Fallback to mock
+                setTimeout(() => {
+                    const mockFacebookUser = {
+                        id: 'facebook_' + Date.now(),
+                        name: 'Demo Facebook User',
+                        email: 'demo@facebook.com',
+                        avatar: 'https://ui-avatars.com/api/?name=Demo+Facebook+User&background=1877F2&color=fff&size=128',
+                        provider: 'facebook',
+                        loginTime: new Date().toISOString()
+                    };
+                    completeLogin(mockFacebookUser);
+                    saveAccountToList('facebook', mockFacebookUser);
+                }, 1000);
+            }
+        };
+        
+        // ============================================
+        // REAL APPLE SIGN IN
+        // ============================================
+        
+        // Override the mock Apple login with real OAuth (only if configured)
+        window.loginWithAppleReal = function() {
+            if (!isOAuthConfigured('apple')) {
+                console.log('ℹ️ Apple Sign In not configured - using demo mode');
+                showLoadingToast('Using demo Apple login...');
+                // Use mock login
+                setTimeout(() => {
+                    const mockAppleUser = {
+                        id: 'apple_' + Date.now(),
+                        name: 'Demo Apple User',
+                        email: 'demo@icloud.com',
+                        avatar: 'https://ui-avatars.com/api/?name=Demo+Apple+User&background=000000&color=fff&size=128',
+                        provider: 'apple',
+                        loginTime: new Date().toISOString()
+                    };
+                    completeLogin(mockAppleUser);
+                    saveAccountToList('apple', mockAppleUser);
+                }, 1000);
+                return;
+            }
+            
+            if (typeof AppleID === 'undefined') {
+                showErrorToast('Apple Sign In not available. Please check your internet connection.');
+                return;
+            }
+            
+            showLoadingToast('Opening Apple Sign In...');
+            
+            try {
+                AppleID.auth.signIn()
+                    .then((response) => {
+                        // Decode the identity token
+                        const userInfo = parseJwt(response.authorization.id_token);
+                        
+                        const appleUser = {
+                            id: 'apple_' + userInfo.sub,
+                            name: response.user?.name ? `${response.user.name.firstName} ${response.user.name.lastName}` : 'Apple User',
+                            email: userInfo.email || response.user?.email || 'No email provided',
+                            avatar: 'https://ui-avatars.com/api/?name=Apple+User&background=000000&color=fff&size=128',
+                            provider: 'apple',
+                            loginTime: new Date().toISOString()
+                        };
+                        
+                        completeLogin(appleUser);
+                        saveAccountToList('apple', appleUser);
+                    })
+                    .catch((error) => {
+                        console.error('Apple Sign In error:', error);
+                        showErrorToast('Apple Sign In cancelled or failed');
+                    });
+            } catch (error) {
+                console.error('Apple Sign In error:', error);
+                showErrorToast('Apple Sign In failed. Using demo mode.');
+                // Fallback to mock
+                setTimeout(() => {
+                    const mockAppleUser = {
+                        id: 'apple_' + Date.now(),
+                        name: 'Demo Apple User',
+                        email: 'demo@icloud.com',
+                        avatar: 'https://ui-avatars.com/api/?name=Demo+Apple+User&background=000000&color=fff&size=128',
+                        provider: 'apple',
+                        loginTime: new Date().toISOString()
+                    };
+                    completeLogin(mockAppleUser);
+                    saveAccountToList('apple', mockAppleUser);
+                }, 1000);
+            }
+        };
+        
+        // ============================================
+        // TWITTER/X OAUTH (OAuth 2.0)
+        // ============================================
+        
+        // Twitter OAuth requires backend implementation
+        window.loginWithTwitterReal = function() {
+            showLoadingToast('Opening X (Twitter) Login...');
+            
+            // Twitter OAuth 2.0 requires server-side implementation
+            // This is a placeholder that shows the flow
+            showErrorToast('Twitter/X login requires backend setup. Using demo mode.');
+            
+            // Fallback to mock for now
+            setTimeout(() => {
+                const mockTwitterUser = {
+                    id: 'twitter_' + Date.now(),
+                    name: 'Twitter User',
+                    email: 'user@twitter.com',
+                    avatar: 'https://ui-avatars.com/api/?name=Twitter+User&background=000000&color=fff&size=128',
+                    provider: 'twitter',
+                    loginTime: new Date().toISOString()
+                };
+                
+                completeLogin(mockTwitterUser);
+                saveAccountToList('twitter', mockTwitterUser);
+            }, 1500);
+        };
+        
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        // Parse JWT token
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('Error parsing JWT:', e);
+                return {};
+            }
+        }
+        
+        // Check if user is logged in with Chrome accounts
+        function checkChromeAccounts() {
+            // Check if user is signed into Chrome
+            if (typeof chrome !== 'undefined' && chrome.identity) {
+                chrome.identity.getProfileUserInfo(function(userInfo) {
+                    if (userInfo.email) {
+                        console.log('✅ Chrome user detected:', userInfo.email);
+                        // Optionally auto-suggest this account
+                    }
+                });
+            }
+        }
+        
+        // Call on page load
+        checkChromeAccounts();
+        
+        console.log('🔐 Real OAuth system initialized');
+        console.log('📝 To enable real authentication:');
+        console.log('1. Get Google Client ID from: https://console.cloud.google.com/');
+        console.log('2. Get Facebook App ID from: https://developers.facebook.com/');
+        console.log('3. Get Apple Client ID from: https://developer.apple.com/');
+        console.log('4. Replace the placeholder IDs in OAUTH_CONFIG');
+    </script>
+    
+    <script>
+        // Interactive Line Network Background
+        const canvas = document.getElementById('line-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initNodes();
+        });
+        
+        // Create network nodes
+        const nodes = [];
+        const nodeCount = 50;
+        const maxDistance = 150;
+        let mouse = { x: null, y: null };
+        
+        class Node {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = 2;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(230, 57, 70, 0.5)';
+                ctx.fill();
+            }
+        }
+        
+        function initNodes() {
+            nodes.length = 0;
+            for (let i = 0; i < nodeCount; i++) {
+                nodes.push(new Node());
+            }
+        }
+        
+        function drawLines() {
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dx = nodes[i].x - nodes[j].x;
+                    const dy = nodes[i].y - nodes[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < maxDistance) {
+                        ctx.beginPath();
+                        ctx.moveTo(nodes[i].x, nodes[i].y);
+                        ctx.lineTo(nodes[j].x, nodes[j].y);
+                        ctx.strokeStyle = `rgba(230, 57, 70, ${0.2 * (1 - distance / maxDistance)})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+                
+                // Connect to mouse
+                if (mouse.x !== null && mouse.y !== null) {
+                    const dx = nodes[i].x - mouse.x;
+                    const dy = nodes[i].y - mouse.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < maxDistance * 1.5) {
+                        ctx.beginPath();
+                        ctx.moveTo(nodes[i].x, nodes[i].y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.strokeStyle = `rgba(247, 127, 0, ${0.5 * (1 - distance / (maxDistance * 1.5))})`;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            nodes.forEach(node => {
+                node.update();
+                node.draw();
+            });
+            
+            drawLines();
+            requestAnimationFrame(animate);
+        }
+        
+        // Track mouse/touch
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                mouse.x = e.touches[0].clientX;
+                mouse.y = e.touches[0].clientY;
+            }
+        });
+        
+        document.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+        
+        initNodes();
+        animate();
+        
+        // Cinematic Effects (Only for background elements)
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create particles
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+            
+            // Add holographic effect to cards (no movement, just visual effect)
+            const cards = document.querySelectorAll('.earthquake-card, .action-btn, .status-card');
+            cards.forEach(card => {
+                card.classList.add('holographic');
+                
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / 20;
+                    const rotateY = (centerX - x) / 20;
+                    
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+                });
+            });
+            
+            // Add glow effect to buttons
+            const buttons = document.querySelectorAll('button, .btn-primary, .action-btn');
+            buttons.forEach(btn => {
+                btn.classList.add('glow-on-hover');
+            });
+            
+            // Floating animation for hero elements (subtle)
+            gsap.to('.hero-image-container', {
+                y: -10,
+                duration: 3,
+                repeat: -1,
+                yoyo: true,
+                ease: 'power1.inOut'
+            });
+            
+            gsap.to('.floating-icon', {
+                y: -8,
+                duration: 3.5,
+                repeat: -1,
+                yoyo: true,
+                ease: 'power1.inOut',
+                stagger: 0.2
+            });
+            
+            // Tech glitch effect on title
+            const title = document.querySelector('.hero-title');
+            if (title) {
+                setInterval(() => {
+                    title.style.textShadow = `
+                        ${Math.random() * 2}px ${Math.random() * 2}px 0 rgba(230, 57, 70, 0.7),
+                        ${Math.random() * -2}px ${Math.random() * -2}px 0 rgba(69, 123, 157, 0.7)
+                    `;
+                    setTimeout(() => {
+                        title.style.textShadow = `
+                            0 0 10px rgba(230, 57, 70, 0.5),
+                            0 0 20px rgba(230, 57, 70, 0.3),
+                            0 0 30px rgba(230, 57, 70, 0.2)
+                        `;
+                    }, 50);
+                }, 3000);
+            }
+            
+            // Ripple effect on click
+            document.addEventListener('click', (e) => {
+                const ripple = document.createElement('div');
+                ripple.style.position = 'fixed';
+                ripple.style.left = e.clientX + 'px';
+                ripple.style.top = e.clientY + 'px';
+                ripple.style.width = '0';
+                ripple.style.height = '0';
+                ripple.style.borderRadius = '50%';
+                ripple.style.border = '2px solid rgba(230, 57, 70, 0.5)';
+                ripple.style.pointerEvents = 'none';
+                ripple.style.zIndex = '9998';
+                document.body.appendChild(ripple);
+                
+                gsap.to(ripple, {
+                    width: '100px',
+                    height: '100px',
+                    left: e.clientX - 50,
+                    top: e.clientY - 50,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: 'power2.out',
+                    onComplete: () => ripple.remove()
+                });
+            });
+        });
+    </script>
+</body>
+</html>
