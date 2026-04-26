@@ -233,11 +233,22 @@
             <p class="hero-subtitle">Earthquake Tips and Information</p>
             <p class="hero-description">Protection System</p>
 
-            <div class="hero-image-container">
-                <div class="pulse-bg"></div>
-                <img src="{{ url_for('static', filename='images/hero-family.jpg') }}" alt="Family Safety" class="hero-image">
-                <div class="hero-badge">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <!-- App Logo (replaces family photo) -->
+            <div style="position: relative; width: 14rem; height: 14rem; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center;">
+                <!-- Outer pulse ring -->
+                <div style="position: absolute; inset: 0; border-radius: 2.5rem; background: linear-gradient(135deg, rgba(220,20,60,0.15), rgba(230,57,70,0.1)); animation: pulse-seismic 2.5s ease-in-out infinite;"></div>
+                <!-- Middle pulse ring -->
+                <div style="position: absolute; inset: 1rem; border-radius: 2rem; background: linear-gradient(135deg, rgba(220,20,60,0.2), rgba(230,57,70,0.15)); animation: pulse-seismic 2.5s ease-in-out infinite 0.4s;"></div>
+                <!-- Main logo box -->
+                <div style="position: relative; width: 9rem; height: 9rem; background: linear-gradient(135deg, #DC143C, #e63946); border-radius: 2rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 60px rgba(220,20,60,0.5), 0 0 40px rgba(220,20,60,0.3), inset 0 1px 0 rgba(255,255,255,0.2); z-index: 1;">
+                    <!-- Seismic wave icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                </div>
+                <!-- Shield badge bottom-right -->
+                <div style="position: absolute; bottom: 1rem; right: 1rem; width: 3.5rem; height: 3.5rem; background: #DC143C; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(220,20,60,0.5); z-index: 2;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
                 </div>
