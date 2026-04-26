@@ -247,7 +247,7 @@ function showAllEarthquakes() {
                         </span>
                     </div>
                     <div style="margin-top: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.6);">
-                        Depth: ${quake.depth}km • Coordinates: ${quake.coordinates[0].toFixed(4)}, ${quake.coordinates[1].toFixed(4)}
+                        Depth: ${quake.depth}km &bull; Coordinates: ${quake.coordinates[0].toFixed(4)}, ${quake.coordinates[1].toFixed(4)}
                     </div>
                 </div>
             </div>
@@ -353,7 +353,7 @@ function renderEarthquakes() {
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                             </svg>
-                            <span>🤖 Analyze This Earthquake</span>
+                            <span>&#x1F916; Analyze This Earthquake</span>
                         </button>
                     </div>
                 </div>
@@ -499,7 +499,7 @@ function renderAlerts() {
     if (generatedAlerts.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; padding: 3rem 1rem; background: rgba(42, 157, 143, 0.1); border-radius: 1rem; border: 2px solid rgba(42, 157, 143, 0.3);">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                <div style="font-size: 3rem; margin-bottom: 1rem;">&#x2705;</div>
                 <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1.25rem; margin-bottom: 0.5rem;">All Clear</h3>
                 <p style="color: #4a4a4a; font-size: 0.875rem;">No active warnings or alerts at this time. Stay prepared!</p>
             </div>
@@ -602,7 +602,7 @@ function renderAlerts() {
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                         </svg>
-                        <span>🤖 AI Risk Analysis</span>
+                        <span>&#x1F916; AI Risk Analysis</span>
                     </button>
                 </div>
             </div>
@@ -675,12 +675,12 @@ function generateAlertsFromEarthquakes() {
     const fresh = earthquakes.filter(q => (now - new Date(q.timestamp)) <= STALE_MS);
 
     if (fresh.length === 0) {
-        // Nothing recent — show monitoring card
+        // Nothing recent &mdash; show monitoring card
         alertList.push({
             id: 'monitoring-clear',
             type: 'info',
             severity: 'info',
-            title: '✅ No Recent Earthquakes — System Monitoring',
+            title: '&#x2705; No Recent Earthquakes &mdash; System Monitoring',
             message: 'No earthquakes detected in the past 48 hours near your area. The app is actively watching USGS data and will notify you instantly when a new event is detected.',
             timestamp: new Date().toISOString(),
             location: null,
@@ -701,7 +701,7 @@ function generateAlertsFromEarthquakes() {
         id: `eq-${nearest.id}`,
         type: 'earthquake',
         severity: nearestSeverity,
-        title: `📍 Nearest Earthquake — ${nearestLabel} (M${nearest.magnitude})`,
+        title: `&#x1F4CD; Nearest Earthquake &mdash; ${nearestLabel} (M${nearest.magnitude})`,
         message: `M${nearest.magnitude} earthquake detected ${nearest.distance.toFixed(1)}km from your location at ${nearest.location}. Depth: ${nearest.depth}km. ${nearest.magnitude >= 4.5 ? 'Drop, Cover, and Hold On!' : 'Stay alert and be prepared.'}`,
         timestamp: nearest.timestamp,
         location: nearest.location,
@@ -710,7 +710,7 @@ function generateAlertsFromEarthquakes() {
 
     // ── Additional alerts for other fresh earthquakes ─────────────────────────
     fresh.forEach(quake => {
-        if (quake.id === nearest.id) return; // skip — already added
+        if (quake.id === nearest.id) return; // skip &mdash; already added
         const hoursAgo = (now - new Date(quake.timestamp)) / (1000 * 60 * 60);
 
         // Earthquake detection alert (M4.0+ or very close)
@@ -763,7 +763,7 @@ function generateAlertsFromEarthquakes() {
 }
 
 
-// AI Risk Assessment for a specific earthquake — calls dedicated single-quake endpoint
+// AI Risk Assessment for a specific earthquake &mdash; calls dedicated single-quake endpoint
 async function performRiskAssessmentForQuake(quakeId) {
     const quake = earthquakes.find(q => q.id === quakeId);
     if (!quake) return;
@@ -840,7 +840,7 @@ async function analyzeWithRealAI(quake, containerId) {
                     border:1px solid rgba(247,127,0,0.3);border-radius:0.75rem;
                     padding:1rem;margin-top:0.75rem;">
             <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
-                <span style="color:#f77f00;font-weight:700;font-size:0.8rem;">🤖 E-TIPS AI is analyzing...</span>
+                <span style="color:#f77f00;font-weight:700;font-size:0.8rem;">&#x1F916; E-TIPS AI is analyzing...</span>
             </div>
             <div style="height:4px;background:rgba(247,127,0,0.15);border-radius:2px;overflow:hidden;">
                 <div style="height:100%;background:linear-gradient(90deg,#f77f00,#e63946);
@@ -866,9 +866,9 @@ async function analyzeWithRealAI(quake, containerId) {
                 .replace(/🔍 SITUATION ASSESSMENT/g,'<div class="ais-h">🔍 Situation Assessment</div>')
                 .replace(/⚠️ IMMEDIATE ACTIONS/g,'<div class="ais-h" style="color:#e63946;">⚠️ Immediate Actions</div>')
                 .replace(/🏠 WHAT TO EXPECT/g,'<div class="ais-h" style="color:#457b9d;">🏠 What to Expect</div>')
-                .replace(/✅ YOU ARE SAFE WHEN/g,'<div class="ais-h" style="color:#2a9d8f;">✅ You Are Safe When</div>')
+                .replace(/&#x2705; YOU ARE SAFE WHEN/g,'<div class="ais-h" style="color:#2a9d8f;">&#x2705; You Are Safe When</div>')
                 .replace(/💡 PREPAREDNESS TIP/g,'<div class="ais-h" style="color:#6a4c93;">💡 Preparedness Tip</div>')
-                .replace(/^• (.+)$/gm,'<div style="display:flex;gap:0.35rem;margin:0.15rem 0;"><span style="color:#f77f00;">▸</span><span>$1</span></div>')
+                .replace(/^&bull; (.+)$/gm,'<div style="display:flex;gap:0.35rem;margin:0.15rem 0;"><span style="color:#f77f00;">▸</span><span>$1</span></div>')
                 .replace(/\n\n/g,'<br>').replace(/\n/g,'<br>');
             container.innerHTML=`
                 <div style="background:linear-gradient(135deg,rgba(247,127,0,0.08),rgba(230,57,70,0.04));
@@ -894,7 +894,7 @@ function autoAnalyzeNearest(quakeList) {
     setTimeout(()=>analyzeWithRealAI(nearest, panelId), 900);
 }
 
-// Load alerts — now dynamically derived from live USGS earthquake data
+// Load alerts &mdash; now dynamically derived from live USGS earthquake data
 async function loadAlerts() {
     try {
         const response = await fetch('/api/alerts');
@@ -1036,7 +1036,7 @@ function showEarthquakeDetail(quake) {
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
             </svg>
-            <span>🤖 Analyze This Earthquake with AI</span>
+            <span>&#x1F916; Analyze This Earthquake with AI</span>
         </button>
     `;
     
@@ -1068,7 +1068,7 @@ function closeEarthquakeDetailModal() {
     }
 }
 
-// Enhanced AI Risk Assessment — full area analysis of ALL earthquakes
+// Enhanced AI Risk Assessment &mdash; full area analysis of ALL earthquakes
 async function performRiskAssessment() {
     const loadingModal = document.getElementById('loading-modal');
     loadingModal.classList.remove('hidden');
@@ -1113,7 +1113,7 @@ async function performRiskAssessment() {
     }
 }
 
-// Show risk assessment modal — works for both single-quake and full-area assessments
+// Show risk assessment modal &mdash; works for both single-quake and full-area assessments
 function showRiskAssessment(assessment, focusQuake) {
     const modal   = document.getElementById('risk-modal');
     const content = document.getElementById('risk-content');
@@ -1136,9 +1136,9 @@ function showRiskAssessment(assessment, focusQuake) {
             .replace(/🔍 SITUATION ASSESSMENT/g,'<div class="grh">🔍 Situation Assessment</div>')
             .replace(/⚠️ IMMEDIATE ACTIONS/g,'<div class="grh" style="color:#e63946;">⚠️ Immediate Actions</div>')
             .replace(/🏠 WHAT TO EXPECT/g,'<div class="grh" style="color:#457b9d;">🏠 What to Expect</div>')
-            .replace(/✅ YOU ARE SAFE WHEN/g,'<div class="grh" style="color:#2a9d8f;">✅ You Are Safe When</div>')
+            .replace(/&#x2705; YOU ARE SAFE WHEN/g,'<div class="grh" style="color:#2a9d8f;">&#x2705; You Are Safe When</div>')
             .replace(/💡 PREPAREDNESS TIP/g,'<div class="grh" style="color:#6a4c93;">💡 Preparedness Tip</div>')
-            .replace(/^• (.+)$/gm,'<div style="display:flex;gap:0.35rem;margin:0.15rem 0;"><span style="color:#f77f00;flex-shrink:0;">▸</span><span>$1</span></div>')
+            .replace(/^&bull; (.+)$/gm,'<div style="display:flex;gap:0.35rem;margin:0.15rem 0;"><span style="color:#f77f00;flex-shrink:0;">▸</span><span>$1</span></div>')
             .replace(/\n\n/g,'<br>').replace(/\n/g,'<br>');
         geminiPanel = `
             <div style="background:linear-gradient(135deg,rgba(247,127,0,0.08),rgba(230,57,70,0.05));
@@ -1270,14 +1270,14 @@ function showRiskAssessment(assessment, focusQuake) {
                     <p style="font-size: 0.78rem; color: #4a4a4a; line-height: 1.5;">${q.recommendation}</p>
                     <button onclick="event.stopPropagation(); closeRiskModal(); performRiskAssessmentForQuake('${q.quakeId}')" 
                         style="margin-top: 0.5rem; background: linear-gradient(135deg,${lc},${lc}cc); color:white; border:none; padding:0.4rem 0.85rem; border-radius:0.4rem; font-size:0.75rem; font-weight:600; cursor:pointer;">
-                        🤖 Full Analysis
+                        &#x1F916; Full Analysis
                     </button>
                 </div>`;
         });
         breakdownHTML = `
             <div style="margin-top: 1.25rem;">
                 <h4 style="font-weight: 700; margin-bottom: 0.75rem; color: var(--etips-textDark); display:flex; align-items:center; gap:0.5rem;">
-                    🌍 Individual AI Assessment — All ${assessment.earthquakeBreakdown.length} Earthquakes
+                    🌍 Individual AI Assessment &mdash; All ${assessment.earthquakeBreakdown.length} Earthquakes
                 </h4>
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">${rows}</div>
             </div>`;
@@ -1420,7 +1420,7 @@ function initMapHome() {
     
     userMarker.bindPopup(`
         <div style="text-align: center; padding: 0.25rem;">
-            <div style="font-size: 2rem;">📍</div>
+            <div style="font-size: 2rem;">&#x1F4CD;</div>
         </div>
     `);
     
@@ -1459,7 +1459,7 @@ function initMapHome() {
                     <p style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9375rem;">${quake.location}</p>
                     <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8125rem; color: #6c757d;">
                         <p>📏 Depth: ${quake.depth}km</p>
-                        <p>📍 Distance: ${quake.distance.toFixed(1)}km from you</p>
+                        <p>&#x1F4CD; Distance: ${quake.distance.toFixed(1)}km from you</p>
                         <p>⏰ ${formatTime(quake.timestamp)}</p>
                     </div>
                 </div>
@@ -1504,14 +1504,14 @@ function initMapHome() {
                 <div class="risk-badge ${riskClass}" style="margin-top:0.5rem;font-size:0.625rem;padding:0.25rem 0.5rem;">${nearest.riskLevel.toUpperCase()}</div>
             </div>`;
 
-        // Make nearest-event-card clickable — navigates to alerts
+        // Make nearest-event-card clickable &mdash; navigates to alerts
         const card = document.getElementById('nearest-event-card-home');
         if (card) card.onclick = () => showNearestEarthquakeAlert();
 
-        console.log('✅ Nearest earthquake card updated successfully!');
+        console.log('&#x2705; Nearest earthquake card updated successfully!');
     } else {
-        // No earthquakes within 48 hours — show monitoring state
-        console.log('ℹ️ No earthquakes within 48 hours — showing monitoring state');
+        // No earthquakes within 48 hours &mdash; show monitoring state
+        console.log('ℹ️ No earthquakes within 48 hours &mdash; showing monitoring state');
         document.getElementById('nearest-location-home').textContent = 'No Recent Earthquakes';
         document.getElementById('nearest-distance-home').textContent = 'System is actively monitoring';
         document.getElementById('nearest-magnitude-home').textContent = 'All Clear';
@@ -1519,10 +1519,10 @@ function initMapHome() {
         document.getElementById('nearest-depth-home').textContent = 'You will be notified instantly';
         document.getElementById('nearest-risk-badge-home').innerHTML =
             `<div style="background:rgba(42,157,143,0.15);border:2px solid #2a9d8f;border-radius:0.75rem;padding:0.75rem 1rem;text-align:center;min-width:80px;">
-                <div style="font-size:1.6rem;line-height:1;">✅</div>
+                <div style="font-size:1.6rem;line-height:1;">&#x2705;</div>
                 <div style="font-size:0.6rem;color:#2a9d8f;text-transform:uppercase;font-weight:700;margin-top:0.3rem;">Safe</div>
             </div>`;
-        // Card still navigates to alerts — shows the monitoring state there too
+        // Card still navigates to alerts &mdash; shows the monitoring state there too
         const card = document.getElementById('nearest-event-card-home');
         if (card) card.onclick = () => showView('alerts');
     }
@@ -1588,7 +1588,7 @@ function initMap() {
     // Simple popup - just icon, no text
     userMarker.bindPopup(`
         <div style="text-align: center; padding: 0.25rem;">
-            <div style="font-size: 2rem;">📍</div>
+            <div style="font-size: 2rem;">&#x1F4CD;</div>
         </div>
     `);
     
@@ -1627,7 +1627,7 @@ function initMap() {
                     <p style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9375rem;">${quake.location}</p>
                     <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8125rem; color: #6c757d;">
                         <p>📏 Depth: ${quake.depth}km</p>
-                        <p>📍 Distance: ${quake.distance.toFixed(1)}km from you</p>
+                        <p>&#x1F4CD; Distance: ${quake.distance.toFixed(1)}km from you</p>
                         <p>⏰ ${formatTime(quake.timestamp)}</p>
                     </div>
                 </div>
@@ -1639,7 +1639,7 @@ function initMap() {
         const nearest = earthquakes[0];
         document.getElementById('nearest-location').textContent = nearest.location;
         document.getElementById('nearest-meta').textContent = 
-            `${nearest.distance.toFixed(1)}km away • M${nearest.magnitude}`;
+            `${nearest.distance.toFixed(1)}km away &bull; M${nearest.magnitude}`;
         
         const riskClass = nearest.riskLevel === 'high' ? 'risk-high' : 
                          nearest.riskLevel === 'medium' ? 'risk-medium' : 'risk-low';
@@ -3241,7 +3241,7 @@ function showLoadingToast(message) {
 }
 
 function showSuccessToast(message) {
-    showToast(message, 'rgba(42, 157, 143, 0.95)', '✅');
+    showToast(message, 'rgba(42, 157, 143, 0.95)', '&#x2705;');
 }
 
 function showErrorToast(message) {
@@ -3397,7 +3397,7 @@ function populateCategoryPage(category) {
         const tips = [
             { icon: '🏠', title: 'Secure Your Home', body: 'Anchor bookshelves, water heaters, and heavy appliances to walls with straps or bolts. This prevents them from toppling during shaking.' },
             { icon: '🎒', title: 'Build a 72-Hour Kit', body: 'Prepare a bag with water (1 gal/person/day), non-perishable food, first aid kit, flashlight, batteries, radio, and copies of documents.' },
-            { icon: '📍', title: 'Identify Safe Spots', body: 'In each room, locate a sturdy table or desk to shelter under. Know which walls are load-bearing. Avoid windows and exterior walls.' },
+            { icon: '&#x1F4CD;', title: 'Identify Safe Spots', body: 'In each room, locate a sturdy table or desk to shelter under. Know which walls are load-bearing. Avoid windows and exterior walls.' },
             { icon: '👨‍👩‍👧‍👦', title: 'Make a Family Plan', body: 'Agree on two meeting points: one near your home and one outside your neighborhood. Share emergency contacts with all family members.' },
             { icon: '🔁', title: 'Practice DROP-COVER-HOLD', body: 'Monthly drills build muscle memory. DROP to hands and knees, COVER your head and neck under a table, HOLD ON until shaking stops.' },
             { icon: '⚡', title: 'Know Your Utilities', body: 'Learn how to shut off gas, water, and electricity. Keep a wrench near the gas meter. Teach all adults in your household.' },
@@ -3449,7 +3449,7 @@ function populateCategoryPage(category) {
                 src: '/static/images/reminder-5.jpg',
                 badge: 'Reminder #5',
                 title: '🔩 Secure Heavy Items in Your Home',
-                body: 'Most earthquake injuries are caused by falling furniture and objects — not building collapse. Secure bookshelves, water heaters, and heavy appliances to walls using straps or bolts.',
+                body: 'Most earthquake injuries are caused by falling furniture and objects &mdash; not building collapse. Secure bookshelves, water heaters, and heavy appliances to walls using straps or bolts.',
                 tips: ['Anchor tall furniture to wall studs', 'Use museum putty to secure small items', 'Move heavy objects to lower shelves']
             },
             {
@@ -3468,7 +3468,7 @@ function populateCategoryPage(category) {
         ];
 
         document.getElementById('reminders-list').innerHTML = `
-            <!-- Reminder Cards — one per image -->
+            <!-- Reminder Cards &mdash; one per image -->
             ${reminderCards.map((r, i) => `
                 <div style="background: #ffffff; border: 1.5px solid rgba(220,20,60,0.2); border-radius: 1rem; overflow: hidden; margin-bottom: 1.25rem; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
                     <!-- Image -->
@@ -3485,7 +3485,7 @@ function populateCategoryPage(category) {
                         <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.4;">${r.title}</h3>
                         <p style="color: #4a4a4a; font-size: 0.875rem; line-height: 1.65; margin-bottom: 0.85rem;">${r.body}</p>
                         <div style="background: rgba(220,20,60,0.04); border-left: 3px solid #DC143C; border-radius: 0 0.5rem 0.5rem 0; padding: 0.75rem 1rem;">
-                            <p style="color: #DC143C; font-weight: 700; font-size: 0.75rem; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em;">✅ Action Steps</p>
+                            <p style="color: #DC143C; font-weight: 700; font-size: 0.75rem; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em;">&#x2705; Action Steps</p>
                             <ul style="padding-left: 1.1rem; margin: 0;">
                                 ${r.tips.map(tip => `<li style="color: #333; font-size: 0.82rem; line-height: 1.8;">${tip}</li>`).join('')}
                             </ul>
@@ -3573,7 +3573,7 @@ function populateCategoryPage(category) {
                 icon: '💧', title: 'Water & Food', color: '#1d7ad4',
                 bg: 'rgba(29,122,212,0.08)', border: 'rgba(29,122,212,0.25)',
                 items: [
-                    { img: 'emergency-water.jpg',          label: 'Water',               desc: '1 gallon/person/day — 3-day supply minimum' },
+                    { img: 'emergency-water.jpg',          label: 'Water',               desc: '1 gallon/person/day &mdash; 3-day supply minimum' },
                     { img: 'emergency-food.jpg',           label: 'Non-Perishable Food', desc: '3-day supply of canned or dry goods' },
                     { img: 'emergency-can-opener.jpg',     label: 'Manual Can Opener',   desc: 'Essential for opening canned food' },
                     { img: 'emergency-utensils.jpg',       label: 'Eating Utensils',     desc: 'Plates, cups, spoons for the family' },
@@ -3596,7 +3596,7 @@ function populateCategoryPage(category) {
                 icon: '🔦', title: 'Tools & Safety', color: '#f77f00',
                 bg: 'rgba(247,127,0,0.07)', border: 'rgba(247,127,0,0.25)',
                 items: [
-                    { img: 'emergency-flashlight.jpg',       label: 'Flashlight',       desc: 'With extra batteries — keep one per room' },
+                    { img: 'emergency-flashlight.jpg',       label: 'Flashlight',       desc: 'With extra batteries &mdash; keep one per room' },
                     { img: 'emergency-batteries.jpg',        label: 'Extra Batteries',  desc: 'AA/AAA batteries for all devices' },
                     { img: 'emergency-radio.jpg',            label: 'Battery Radio',    desc: 'Hand-crank or battery emergency radio' },
                     { img: 'emergency-whistle.jpg',          label: 'Whistle',          desc: 'Signal for help if trapped or lost' },
@@ -3698,7 +3698,7 @@ const drillData = {
             'Stay in position until shaking stops completely. Do not try to run during shaking.',
             'After shaking stops, carefully check for hazards before moving.'
         ],
-        notes: ['Do NOT run outside during shaking — most injuries occur from falling debris', 'If in bed, stay there and protect your head with a pillow', 'If outdoors, move away from buildings and stay in the open']
+        notes: ['Do NOT run outside during shaking &mdash; most injuries occur from falling debris', 'If in bed, stay there and protect your head with a pillow', 'If outdoors, move away from buildings and stay in the open']
     },
     'home-evacuation': {
         title: 'Home Evacuation Drill',
@@ -3710,12 +3710,12 @@ const drillData = {
             'When shaking stops, shout "EVACUATE!" as the drill signal.',
             'Each family member performs DROP-COVER-HOLD ON first.',
             'Check yourself for injuries before moving.',
-            'Walk — never run — to the nearest exit. Avoid using elevators.',
+            'Walk &mdash; never run &mdash; to the nearest exit. Avoid using elevators.',
             'Check door frames for damage before opening doors.',
             'Meet at your designated outdoor meeting point (e.g., front gate or street corner).',
             'Account for all family members. Designate a "house captain" to do the count.'
         ],
-        notes: ['Practice two exit routes per room in case one is blocked', 'Time your drill — aim for under 3 minutes from signal to meeting point', 'Practice in darkness to simulate night-time emergencies']
+        notes: ['Practice two exit routes per room in case one is blocked', 'Time your drill &mdash; aim for under 3 minutes from signal to meeting point', 'Practice in darkness to simulate night-time emergencies']
     },
     'school-office': {
         title: 'School / Office Drill',
@@ -3732,7 +3732,7 @@ const drillData = {
             'Proceed to the assembly area. Stay away from the building.',
             'Warden takes attendance and reports injuries to the coordinator.'
         ],
-        notes: ['Post evacuation routes on every floor in clearly visible locations', 'Assign floor wardens and backups', 'Conduct drills at least twice per year — including one unannounced']
+        notes: ['Post evacuation routes on every floor in clearly visible locations', 'Assign floor wardens and backups', 'Conduct drills at least twice per year &mdash; including one unannounced']
     },
     'car-drill': {
         title: 'Earthquake in a Vehicle',
@@ -3863,8 +3863,8 @@ function showEarthquakeNotification(quake) {
 
     const severity = quake.magnitude >= 5.0 ? '🚨 STRONG' :
                      quake.magnitude >= 4.0 ? '⚠️ MODERATE' : 'ℹ️ MINOR';
-    const title = `${severity} EARTHQUAKE — M${quake.magnitude}`;
-    const body  = `📍 ${quake.location}\n` +
+    const title = `${severity} EARTHQUAKE &mdash; M${quake.magnitude}`;
+    const body  = `&#x1F4CD; ${quake.location}\n` +
                   `📏 ${quake.distance.toFixed(1)}km from you  |  ⬇️ Depth: ${quake.depth}km\n` +
                   `⏱️ ${formatTime(quake.timestamp)}`;
 
@@ -3924,7 +3924,7 @@ function showInAppAlert(quake) {
             </svg>
             <div>
                 <div style="font-weight:700;font-size:0.85rem;">
-                    M${quake.magnitude} Earthquake — ${quake.distance.toFixed(1)}km from you
+                    M${quake.magnitude} Earthquake &mdash; ${quake.distance.toFixed(1)}km from you
                 </div>
                 <div style="font-size:0.75rem;opacity:0.9;">${quake.location}</div>
             </div>

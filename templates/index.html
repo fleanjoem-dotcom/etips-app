@@ -1180,7 +1180,7 @@
                     console.warn('⚠️ Google OAuth initialization failed:', error);
                 }
             } else {
-                console.log('â„¹ï¸ Google OAuth not configured - using demo mode');
+                console.log('&#x2139;&#xFE0F; Google OAuth not configured - using demo mode');
             }
             
             // Initialize Facebook SDK only if properly configured
@@ -1199,7 +1199,7 @@
                     console.warn('⚠️ Facebook SDK initialization failed:', error);
                 }
             } else {
-                console.log('â„¹ï¸ Facebook OAuth not configured - using demo mode');
+                console.log('&#x2139;&#xFE0F; Facebook OAuth not configured - using demo mode');
             }
             
             // Initialize Apple Sign In only if properly configured
@@ -1216,7 +1216,7 @@
                     console.warn('⚠️ Apple Sign In initialization failed:', error);
                 }
             } else {
-                console.log('â„¹ï¸ Apple Sign In not configured - using demo mode');
+                console.log('&#x2139;&#xFE0F; Apple Sign In not configured - using demo mode');
             }
         }
         
@@ -1227,7 +1227,7 @@
         // Override the mock Google login with real OAuth (only if configured)
         window.loginWithGoogleReal = function() {
             if (!isOAuthConfigured('google')) {
-                console.log('â„¹ï¸ Google OAuth not configured - using demo mode');
+                console.log('&#x2139;&#xFE0F; Google OAuth not configured - using demo mode');
                 showLoadingToast('Using demo Google login...');
                 // Use mock login
                 setTimeout(() => {
@@ -1342,7 +1342,7 @@
         // Override the mock Facebook login with real OAuth (only if configured)
         window.loginWithFacebookReal = function() {
             if (!isOAuthConfigured('facebook')) {
-                console.log('â„¹ï¸ Facebook OAuth not configured - using demo mode');
+                console.log('&#x2139;&#xFE0F; Facebook OAuth not configured - using demo mode');
                 showLoadingToast('Using demo Facebook login...');
                 // Use mock login
                 setTimeout(() => {
@@ -1414,7 +1414,7 @@
         // Override the mock Apple login with real OAuth (only if configured)
         window.loginWithAppleReal = function() {
             if (!isOAuthConfigured('apple')) {
-                console.log('â„¹ï¸ Apple Sign In not configured - using demo mode');
+                console.log('&#x2139;&#xFE0F; Apple Sign In not configured - using demo mode');
                 showLoadingToast('Using demo Apple login...');
                 // Use mock login
                 setTimeout(() => {
