@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, make_response
 from datetime import datetime, timedelta
 import json
 import math
@@ -7,6 +7,13 @@ import os
 from math import radians, cos, sin, asin, sqrt
 from dotenv import load_dotenv
 load_dotenv()
+
+# ── Gzip Compression ─────────────────────────────────────────────────────────
+try:
+    from flask_compress import Compress
+    COMPRESS_AVAILABLE = True
+except ImportError:
+    COMPRESS_AVAILABLE = False
 
 # ── Gemini AI Setup ──────────────────────────────────────────────────────────
 try:
@@ -22,6 +29,20 @@ except Exception:
     GEMINI_AVAILABLE = False
 
 app = Flask(__name__)
+
+# Enable gzip compression for all responses
+if COMPRESS_AVAILABLE:
+    Compress(app)
+
+# Performance settings
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 year cache for static files
+app.config['COMPRESS_MIMETYPES'] = [
+    'text/html', 'text/css', 'text/javascript',
+    'application/json', 'application/javascript',
+    'image/svg+xml'
+]
+app.config['COMPRESS_LEVEL'] = 6
+app.config['COMPRESS_MIN_SIZE'] = 500
 
 # Tupi, South Cotabato coordinates
 TUPI_LAT = 6.3167
