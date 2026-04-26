@@ -59,6 +59,7 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
+  z-index: 2;          /* always above the line-canvas (z-index: 0) */
   overflow: hidden;
 }
 
@@ -302,6 +303,8 @@ body {
   background: #ffffff;
   min-height: 100vh;
   position: relative;
+  z-index: 2;          /* sits above line-canvas (z-index: 0) */
+  isolation: isolate;  /* creates own stacking context */
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
 }
 
