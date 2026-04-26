@@ -3,7 +3,23 @@ from datetime import datetime, timedelta
 import json
 import math
 import requests
+import os
 from math import radians, cos, sin, asin, sqrt
+from dotenv import load_dotenv
+load_dotenv()
+
+# ── Gemini AI Setup ──────────────────────────────────────────────────────────
+try:
+    import google.generativeai as genai
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+    if GEMINI_API_KEY and GEMINI_API_KEY != 'your_gemini_api_key_here':
+        genai.configure(api_key=GEMINI_API_KEY)
+        gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+        GEMINI_AVAILABLE = True
+    else:
+        GEMINI_AVAILABLE = False
+except Exception:
+    GEMINI_AVAILABLE = False
 
 app = Flask(__name__)
 
@@ -160,37 +176,122 @@ def get_earthquakes():
     
     return earthquakes
 
-mock_alerts = [
-    {
-        'id': '1',
-        'type': 'earthquake',
-        'severity': 'high',
-        'title': 'Earthquake Detected Near You',
-        'message': 'Magnitude 4.5 earthquake detected 2.3km from your location. Drop, Cover, and Hold On!',
-        'timestamp': (datetime.now() - timedelta(minutes=30)).isoformat(),
-        'location': 'Makilala, Cotabato',
-        'isRead': False
-    },
-    {
-        'id': '2',
-        'type': 'aftershock',
-        'severity': 'medium',
-        'title': 'Aftershock Warning',
-        'message': 'Aftershocks may occur in the next 24-48 hours. Stay alert and prepared.',
-        'timestamp': (datetime.now() - timedelta(minutes=45)).isoformat(),
-        'isRead': False
-    },
-    {
-        'id': '3',
-        'type': 'evacuation',
-        'severity': 'critical',
-        'title': 'Evacuation Center Open',
-        'message': 'Tupi Municipal Gymnasium is now open as an evacuation center.',
-        'timestamp': (datetime.now() - timedelta(hours=1)).isoformat(),
-        'location': 'Tupi Municipal Gymnasium',
-        'isRead': True
-    }
-]
+def generate_dynamic_alerts(earthquakes_data):
+    """
+    Dynamically generate alerts from live earthquake data.
+    Returns list of alert objects derived from real USGS earthquake events.
+    """
+    alerts = []
+    now = datetime.now()
+
+    for quake in earthquakes_data:
+        quake_time = datetime.fromisoformat(quake['timestamp'])
+        hours_ago = (now - quake_time).total_seconds() / 3600
+
+        # Only generate alerts for earthquakes within last 24 hours
+        if hours_ago > 24:
+            continue
+
+        mag = quake['magnitude']
+        dist = quake['distance']
+        loc = quake['location']
+        risk = quake['riskLevel']
+
+        # 1. Primary earthquake detection alert
+        if mag >= 4.0 or dist < 10:
+            if mag >= 5.0:
+                severity = 'critical'
+                title = f'Strong Earthquake Detected - M{mag}'
+                msg = (f'A strong magnitude {mag} earthquake was detected {dist:.1f}km from your location '
+                       f'at {loc}. Depth: {quake["depth"]}km. DROP, COVER, and HOLD ON immediately!')
+            elif mag >= 4.0:
+                severity = 'high'
+                title = f'Moderate Earthquake Detected - M{mag}'
+                msg = (f'Magnitude {mag} earthquake detected {dist:.1f}km from your location '
+                       f'at {loc}. Stay alert and be prepared for aftershocks.')
+            else:
+                severity = 'warning'
+                title = f'Minor Earthquake Detected - M{mag}'
+                msg = (f'Magnitude {mag} earthquake detected {dist:.1f}km away at {loc}. '
+                       f'Monitor for additional activity.')
+
+            alerts.append({
+                'id': f'eq-{quake["id"]}',
+                'type': 'earthquake',
+                'severity': severity,
+                'title': title,
+                'message': msg,
+                'timestamp': quake['timestamp'],
+                'location': loc,
+                'isRead': False,
+                'earthquakeData': {
+                    'magnitude': mag,
+                    'distance': dist,
+                    'depth': quake['depth'],
+                    'riskLevel': risk
+                }
+            })
+
+        # 2. Aftershock warning for M4.0+ within last 12 hours
+        if mag >= 4.0 and hours_ago < 12:
+            alerts.append({
+                'id': f'aftershock-{quake["id"]}',
+                'type': 'aftershock',
+                'severity': 'warning',
+                'title': 'Aftershock Warning',
+                'message': (f'Following the M{mag} earthquake at {loc}, aftershocks may occur '
+                            f'in the next 24-48 hours. Keep emergency supplies ready and stay alert.'),
+                'timestamp': (quake_time + timedelta(minutes=15)).isoformat(),
+                'location': loc,
+                'isRead': False,
+                'earthquakeData': {
+                    'magnitude': mag,
+                    'distance': dist,
+                    'depth': quake['depth'],
+                    'riskLevel': risk
+                }
+            })
+
+        # 3. Evacuation notice for high-risk events within last 6 hours
+        if risk == 'high' and hours_ago < 6:
+            alerts.append({
+                'id': f'evac-{quake["id"]}',
+                'type': 'evacuation',
+                'severity': 'info',
+                'title': 'Evacuation Centers Now Open',
+                'message': ('Following the recent earthquake, evacuation centers are now open. '
+                            'Tupi Municipal Gymnasium and Barangay Hall are providing shelter, '
+                            'food, water, and medical assistance.'),
+                'timestamp': (quake_time + timedelta(minutes=30)).isoformat(),
+                'location': 'Tupi Municipal Gymnasium, Barangay Hall',
+                'isRead': False,
+                'earthquakeData': {
+                    'magnitude': mag,
+                    'distance': dist,
+                    'depth': quake['depth'],
+                    'riskLevel': risk
+                }
+            })
+
+    # If no alerts, add a general preparedness notice
+    if not alerts:
+        alerts.append({
+            'id': 'preparedness-1',
+            'type': 'info',
+            'severity': 'info',
+            'title': 'All Clear - Stay Prepared',
+            'message': ('No significant seismic activity detected in your area. '
+                        'Use this calm period to review your emergency kit, practice '
+                        'Drop-Cover-Hold On, and keep E-TIPS notifications enabled.'),
+            'timestamp': now.isoformat(),
+            'location': None,
+            'isRead': True,
+            'earthquakeData': None
+        })
+
+    # Sort by timestamp, newest first
+    alerts.sort(key=lambda x: x['timestamp'], reverse=True)
+    return alerts
 
 safety_guides = [
     {
@@ -240,6 +341,23 @@ safety_guides = [
 def index():
     return render_template('index.html')
 
+@app.route('/sw.js')
+def service_worker():
+    """Serve the service worker from root scope (required for full-origin push)."""
+    from flask import send_from_directory, make_response
+    response = make_response(send_from_directory('static', 'sw.js'))
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
+
+@app.route('/manifest.json')
+def manifest():
+    """Serve the PWA manifest."""
+    from flask import send_from_directory
+    return send_from_directory('static', 'manifest.json')
+
+
 @app.route('/api/earthquakes')
 def get_earthquakes_api():
     """API endpoint to get earthquake data"""
@@ -248,15 +366,15 @@ def get_earthquakes_api():
 
 @app.route('/api/alerts')
 def get_alerts():
-    return jsonify(mock_alerts)
+    """Dynamically generate alerts from live earthquake data."""
+    earthquakes_data = get_earthquakes()
+    dynamic_alerts = generate_dynamic_alerts(earthquakes_data)
+    return jsonify(dynamic_alerts)
 
 @app.route('/api/alerts/<alert_id>/read', methods=['POST'])
 def mark_alert_read(alert_id):
-    for alert in mock_alerts:
-        if alert['id'] == alert_id:
-            alert['isRead'] = True
-            return jsonify({'success': True})
-    return jsonify({'success': False}), 404
+    # Alerts are now dynamic; mark-as-read is acknowledged but not persisted
+    return jsonify({'success': True})
 
 @app.route('/api/safety-guides')
 def get_safety_guides():
@@ -267,17 +385,215 @@ def get_safety_guides():
 # def get_community_posts():
 #     return jsonify([])
 
+def assess_single_earthquake(quake, all_quakes, active_alerts):
+    """
+    Perform a full AI risk assessment for one specific earthquake.
+    Returns a complete assessment dict with score, level, factors, actions, insights.
+    """
+    now = datetime.now()
+    quake_time = datetime.fromisoformat(quake['timestamp'])
+    hours_ago = (now - quake_time).total_seconds() / 3600
+
+    mag = quake['magnitude']
+    dist = quake['distance']
+    depth = quake['depth']
+
+    # --- Factors ---
+    # 1. Proximity (40%)
+    proximity_score = max(0, 100 - (dist * 2))
+
+    # 2. Magnitude (35%)
+    magnitude_score = min(100, mag * 18)
+
+    # 3. Depth (15%) – shallower is more dangerous
+    depth_score = max(0, 100 - (depth * 2.5))
+
+    # 4. Recency (10%) – how recent is this quake
+    recency_score = max(0, 100 - (hours_ago * 4))
+
+    # Aftershock probability based on this quake's magnitude
+    aftershock_prob = min(100, (mag - 2) * 25) if mag > 2 else 0
+
+    # Raw weighted score for this single quake
+    raw = (
+        proximity_score * 0.40 +
+        magnitude_score * 0.35 +
+        depth_score    * 0.15 +
+        recency_score  * 0.10
+    )
+
+    # Alert boost from any active alerts tied to this quake
+    quake_alerts = [a for a in active_alerts if
+                    a.get('earthquakeData') and
+                    abs(a['earthquakeData'].get('magnitude', 0) - mag) < 0.1 and
+                    abs(a['earthquakeData'].get('distance', 999) - dist) < 1]
+    crit = sum(1 for a in quake_alerts if a['severity'] in ('critical', 'high'))
+    warn = sum(1 for a in quake_alerts if a['severity'] == 'warning')
+    alert_boost = min(25, crit * 15 + warn * 7)
+
+    score = min(100, max(0, int(raw) + alert_boost))
+
+    # Risk level
+    if score >= 75:
+        level = 'high'
+        preparedness = 'Immediate Action Required'
+        trend = 'critical'
+        next_review = '6 hours'
+    elif score >= 50:
+        level = 'medium'
+        preparedness = 'Enhanced Vigilance'
+        trend = 'elevated'
+        next_review = '24 hours'
+    elif score >= 25:
+        level = 'low'
+        preparedness = 'Standard Monitoring'
+        trend = 'normal'
+        next_review = '3 days'
+    else:
+        level = 'low'
+        preparedness = 'Basic Awareness'
+        trend = 'minimal'
+        next_review = '1 week'
+
+    # Confidence based on data completeness
+    confidence = min(95, 65 + (10 if hours_ago < 6 else 5) + (10 if dist < 50 else 0) + (5 if mag >= 4 else 0))
+
+    factors = [
+        {
+            'name': '🌍 Proximity to Your Location',
+            'impact': min(100, int(proximity_score)),
+            'description': f'{dist:.1f}km away — {"Very close, high impact" if dist < 20 else "Moderate distance" if dist < 60 else "Distant, lower impact"}'
+        },
+        {
+            'name': '📊 Magnitude Strength',
+            'impact': min(100, int(magnitude_score)),
+            'description': f'M{mag} — {"Severe" if mag >= 5.0 else "Strong" if mag >= 4.0 else "Moderate" if mag >= 3.0 else "Minor"} intensity event'
+        },
+        {
+            'name': '⚡ Focal Depth',
+            'impact': min(100, int(depth_score)),
+            'description': f'{depth}km depth — {"Shallow (high surface impact)" if depth < 15 else "Intermediate depth" if depth < 30 else "Deep focus (reduced surface impact)"}'
+        },
+        {
+            'name': '⏰ Event Recency',
+            'impact': min(100, int(recency_score)),
+            'description': f'{formatTimeAgo(quake["timestamp"])} — {"Immediate threat" if hours_ago < 1 else "Recent event" if hours_ago < 6 else "Older event" if hours_ago < 24 else "Historical event"}'
+        },
+        {
+            'name': '🔄 Aftershock Probability',
+            'impact': min(100, int(aftershock_prob)),
+            'description': f'{"High" if aftershock_prob > 70 else "Moderate" if aftershock_prob > 40 else "Low"} aftershock risk — {int(aftershock_prob)}% probability in next 48 hours'
+        },
+        {
+            'name': '🚨 Associated Alert Status',
+            'impact': min(100, alert_boost * 4),
+            'description': f'{len(quake_alerts)} alert(s) generated: {crit} critical, {warn} warning — risk boosted by +{alert_boost} pts'
+        }
+    ]
+
+    # Actions tailored to this specific quake
+    if level == 'high':
+        actions = [
+            f'🚨 M{mag} at {quake["location"]} ({dist:.1f}km away) — DROP, COVER, HOLD ON immediately',
+            '🔦 Locate flashlights, shoes, and whistle by every bed RIGHT NOW',
+            '💧 Ensure 3-day water supply is accessible (1 gal/person/day)',
+            '📻 Tune battery radio to emergency broadcast frequency',
+            '👨‍👩‍👧‍👦 Conduct immediate family safety check and meet at safe spot',
+            '🏥 Check first aid kit is fully stocked and accessible',
+            '⚠️ Inspect home for gas leaks, structural damage, and hazards',
+            '📱 Enable all E-TIPS push notifications — stay connected'
+        ]
+    elif level == 'medium':
+        actions = [
+            f'⚡ M{mag} at {quake["location"]} ({dist:.1f}km) — stay alert for aftershocks',
+            '📋 Review and update emergency contact list and evacuation routes',
+            '🎒 Verify emergency kit is complete and supplies are not expired',
+            '🔍 Inspect home for unsecured heavy items and potential hazards',
+            '👨‍👩‍👧‍👦 Practice DROP, COVER, HOLD ON drill with family',
+            '📱 Keep E-TIPS notifications active for real-time updates'
+        ]
+    else:
+        actions = [
+            f'✓ M{mag} at {quake["location"]} ({dist:.1f}km) — low immediate risk, stay informed',
+            '📚 Review earthquake safety guidelines as a precaution',
+            '🎒 Maintain basic 72-hour emergency supply kit',
+            '📱 Keep E-TIPS app notifications enabled',
+            '🏗️ Consider earthquake insurance for your property'
+        ]
+
+    # Summary recommendation
+    alert_ctx = f'{crit} critical + {warn} warning alert(s) active for this event.' if (crit + warn) > 0 else 'No alerts triggered for this event.'
+    if level == 'high':
+        rec = (f'🚨 HIGH RISK: M{mag} earthquake at {quake["location"]}, {dist:.1f}km away, '
+               f'{depth}km deep. {alert_ctx} Risk score: {score}/100 — Confidence: {confidence}%. Immediate action required.')
+    elif level == 'medium':
+        rec = (f'⚡ ELEVATED RISK: M{mag} at {quake["location"]}, {dist:.1f}km away. '
+               f'{alert_ctx} Risk score: {score}/100 — Confidence: {confidence}%. Enhanced preparedness recommended.')
+    else:
+        rec = (f'✓ LOW RISK: M{mag} at {quake["location"]}, {dist:.1f}km away, {formatTimeAgo(quake["timestamp"])}. '
+               f'{alert_ctx} Risk score: {score}/100 — Confidence: {confidence}%. Maintain standard preparedness.')
+
+    return {
+        'quakeId': quake['id'],
+        'quakeLocation': quake['location'],
+        'magnitude': mag,
+        'distance': dist,
+        'depth': depth,
+        'timestamp': quake['timestamp'],
+        'level': level,
+        'score': score,
+        'confidence': confidence,
+        'factors': factors,
+        'recommendation': rec,
+        'detailedActions': actions,
+        'insights': {
+            'trend': trend,
+            'nextReview': next_review,
+            'preparednessLevel': preparedness,
+            'hoursAgo': round(hours_ago, 1),
+            'aftershockProbability': f'{int(aftershock_prob)}%',
+            'focalDepth': f'{depth}km',
+            'alertsTriggered': len(quake_alerts),
+            'criticalAlerts': crit,
+            'warningAlerts': warn,
+            'alertBoost': alert_boost,
+            'aiConfidence': confidence,
+            'recommendation': f'AI individually assessed M{mag} event — {formatTimeAgo(quake["timestamp"])}'
+        }
+    }
+
+
+@app.route('/api/risk-assessment/<quake_id>', methods=['GET'])
+def risk_assessment_single(quake_id):
+    """Assess a single earthquake by its ID."""
+    all_earthquakes = get_earthquakes()
+    active_alerts = generate_dynamic_alerts(all_earthquakes)
+
+    quake = next((q for q in all_earthquakes if q['id'] == quake_id), None)
+    if not quake:
+        return jsonify({'error': 'Earthquake not found'}), 404
+
+    result = assess_single_earthquake(quake, all_earthquakes, active_alerts)
+    return jsonify(result)
+
+
 @app.route('/api/risk-assessment', methods=['POST'])
 def risk_assessment():
     data = request.json
     user_lat = data.get('lat', TUPI_LAT)
     user_lng = data.get('lng', TUPI_LNG)
     
-    # Get real earthquake data
+    # Get real earthquake data AND live dynamic alerts
     all_earthquakes = get_earthquakes()
+    active_alerts = generate_dynamic_alerts(all_earthquakes)
+
+    # Count critical/high alerts for alert-boost factor
+    critical_alert_count = sum(1 for a in active_alerts if a['severity'] in ('critical', 'high'))
+    warning_alert_count = sum(1 for a in active_alerts if a['severity'] == 'warning')
+    alert_boost = min(30, critical_alert_count * 15 + warning_alert_count * 7)
     
     # ADVANCED AI RISK ASSESSMENT SYSTEM
-    # Multi-layered analysis with machine learning-inspired logic
+    # Multi-layered analysis incorporating both seismic data AND active alerts
     
     # Get all nearby earthquakes (within 100km for comprehensive analysis)
     nearby_quakes = [q for q in all_earthquakes if q['distance'] < 100]
@@ -401,7 +717,7 @@ def risk_assessment():
     # Higher magnitude = higher aftershock probability
     aftershock_prob = min(100, (magnitude - 2) * 25) if magnitude > 2 else 0
     
-    # WEIGHTED RISK CALCULATION
+    # WEIGHTED RISK CALCULATION (seismic factors)
     raw_score = (
         proximity_score * 0.35 +
         magnitude_score * 0.30 +
@@ -411,14 +727,15 @@ def risk_assessment():
         aftershock_prob * 0.05
     )
     
-    # AI CONFIDENCE ADJUSTMENT
-    # More data = higher confidence
+    # AI CONFIDENCE ADJUSTMENT — more data = higher confidence
     data_points = len(recent_quakes)
     confidence = min(95, 70 + (data_points * 10))
     
     # Adjust score based on confidence
-    score = int(raw_score * (confidence / 100))
-    score = min(100, max(0, score))
+    base_score = int(raw_score * (confidence / 100))
+
+    # ALERT BOOST — active critical/warning alerts increase risk score
+    score = min(100, max(0, base_score + alert_boost))
     
     # INTELLIGENT RISK LEVEL DETERMINATION
     if score >= 75:
@@ -488,14 +805,14 @@ def risk_assessment():
             'description': f'{"High" if aftershock_prob > 70 else "Moderate" if aftershock_prob > 40 else "Low"} likelihood of aftershocks in next 48 hours'
         },
         {
+            'name': '🚨 Active Alert Status',
+            'impact': min(100, alert_boost * 3),
+            'description': f'{critical_alert_count} critical, {warning_alert_count} warning alert(s) currently active — boosting risk score by +{alert_boost} pts'
+        },
+        {
             'name': '🏗️ Building Vulnerability',
             'impact': 35,
             'description': 'Standard residential construction - moderate resilience to seismic activity'
-        },
-        {
-            'name': '👥 Population Exposure',
-            'impact': 40,
-            'description': 'Urban area with moderate density - evacuation routes established'
         }
     ]
     
@@ -536,19 +853,43 @@ def risk_assessment():
     recommendation_list = recommendations.get(level, recommendations['low'])
     
     # MAIN AI RECOMMENDATION WITH ALERT STATUS
+    alert_context = f'{critical_alert_count} critical + {warning_alert_count} warning alert(s) active.' if (critical_alert_count + warning_alert_count) > 0 else 'No high-severity alerts.'
     if level == 'high':
-        main_recommendation = f'🚨 HIGH RISK ALERT: AI detected {len(recent_quakes)} recent earthquake(s) with M{magnitude} within {distance:.1f}km in the last 24 hours. {alert_status}. Immediate action required. Risk score: {score}/100 (Confidence: {confidence}%)'
+        main_recommendation = (f'🚨 HIGH RISK: AI cross-referenced {len(recent_quakes)} recent earthquake(s) '
+                               f'(M{magnitude}, {distance:.1f}km away) with live alerts. {alert_context} '
+                               f'Risk score: {score}/100 — Confidence: {confidence}%. Immediate action required.')
     elif level == 'medium':
-        main_recommendation = f'⚡ ELEVATED RISK: AI analysis shows significant recent seismic activity. M{magnitude} detected {distance:.1f}km away in last 24 hours. {alert_status}. Enhanced preparedness recommended. Risk score: {score}/100 (Confidence: {confidence}%)'
+        main_recommendation = (f'⚡ ELEVATED RISK: AI analysed seismic activity + active alerts. '
+                               f'M{magnitude} detected {distance:.1f}km away. {alert_context} '
+                               f'Risk score: {score}/100 — Confidence: {confidence}%. Enhanced preparedness recommended.')
     else:
-        main_recommendation = f'✓ MONITORED: AI detected {len(recent_quakes)} minor event(s) in last 24 hours. {alert_status}. Distance: {distance:.1f}km. Maintain standard preparedness. Risk score: {score}/100 (Confidence: {confidence}%)'
+        main_recommendation = (f'✓ MONITORED: AI detected {len(recent_quakes)} minor event(s) within 24 hrs. '
+                               f'{alert_context} Distance: {distance:.1f}km. '
+                               f'Risk score: {score}/100 — Confidence: {confidence}%. Maintain standard preparedness.')
     
+    # Build per-earthquake breakdown for ALL earthquakes (not just recent ones)
+    earthquake_breakdown = []
+    for q in all_earthquakes:
+        single = assess_single_earthquake(q, all_earthquakes, active_alerts)
+        earthquake_breakdown.append({
+            'quakeId': single['quakeId'],
+            'quakeLocation': single['quakeLocation'],
+            'magnitude': single['magnitude'],
+            'distance': single['distance'],
+            'timestamp': single['timestamp'],
+            'level': single['level'],
+            'score': single['score'],
+            'confidence': single['confidence'],
+            'recommendation': single['recommendation']
+        })
+
     return jsonify({
         'level': level,
         'score': score,
         'factors': factors,
         'recommendation': main_recommendation,
         'detailedActions': recommendation_list,
+        'earthquakeBreakdown': earthquake_breakdown,
         'insights': {
             'trend': trend,
             'nextReview': next_review,
@@ -562,7 +903,12 @@ def risk_assessment():
             'averageDepth': f'{avg_depth:.1f}km',
             'aftershockProbability': f'{int(aftershock_prob)}%',
             'alertStatus': alert_status,
-            'recommendation': f'AI-powered analysis of {len(recent_quakes)} recent event(s) in last 24 hours'
+            'activeAlerts': len(active_alerts),
+            'criticalAlerts': critical_alert_count,
+            'warningAlerts': warning_alert_count,
+            'alertBoost': alert_boost,
+            'recommendation': (f'AI assessed {len(all_earthquakes)} earthquake(s) individually + '
+                               f'{len(active_alerts)} live alert(s)')
         }
     })
 
@@ -582,6 +928,141 @@ def formatTimeAgo(timestamp):
             return f'{int(days)} days ago'
     except:
         return 'recently'
+
+
+# ── Real Gemini AI Analysis Endpoint ─────────────────────────────────────────
+@app.route('/api/ai-analyze', methods=['POST'])
+def ai_analyze():
+    """Real Gemini AI earthquake risk analysis."""
+    data = request.json or {}
+    quake = data.get('quake', {})
+    context_quakes = data.get('contextQuakes', [])
+    active_alerts = data.get('activeAlerts', [])
+
+    # Build rich context for Gemini
+    mag       = quake.get('magnitude', 'N/A')
+    location  = quake.get('location', 'Unknown')
+    depth     = quake.get('depth', 'N/A')
+    distance  = quake.get('distance', 'N/A')
+    timestamp = quake.get('timestamp', '')
+    risk      = quake.get('riskLevel', 'unknown')
+
+    # Format nearby quakes
+    nearby_text = ''
+    if context_quakes:
+        nearby_lines = []
+        for q in context_quakes[:5]:
+            nearby_lines.append(
+                f"  - M{q.get('magnitude','?')} at {q.get('location','?')}, "
+                f"{q.get('distance','?')}km away, depth {q.get('depth','?')}km"
+            )
+        nearby_text = 'Nearby recent earthquakes:\n' + '\n'.join(nearby_lines)
+    else:
+        nearby_text = 'No other nearby earthquakes in the last 24 hours.'
+
+    alert_text = f"{len(active_alerts)} active seismic alert(s) in the region." if active_alerts else 'No active alerts.'
+
+    time_str = ''
+    if timestamp:
+        try:
+            dt = datetime.fromisoformat(timestamp)
+            diff = datetime.now() - dt
+            mins = int(diff.total_seconds() / 60)
+            time_str = f"{mins} minutes ago" if mins < 60 else f"{mins//60} hours ago"
+        except Exception:
+            time_str = 'recently'
+
+    prompt = f"""You are E-TIPS AI, a professional earthquake safety analyst for Tupi, South Cotabato, Philippines.
+Analyze the following earthquake and give clear, practical safety advice.
+
+EARTHQUAKE DETAILS:
+- Magnitude: M{mag}
+- Location: {location}
+- Depth: {depth} km
+- Distance from user: {distance} km
+- Occurred: {time_str}
+- Preliminary risk level: {risk}
+
+{nearby_text}
+Alert status: {alert_text}
+
+Your response MUST follow this EXACT format with these section headers:
+
+🔍 SITUATION ASSESSMENT
+[2-3 sentences describing the earthquake's severity and what it means for the user]
+
+⚠️ IMMEDIATE ACTIONS
+[3-5 bullet points of what the user should do RIGHT NOW]
+
+🏠 WHAT TO EXPECT
+[2-3 sentences about aftershocks, structural effects, or what may happen next]
+
+✅ YOU ARE SAFE WHEN
+[2-3 clear conditions that indicate safety]
+
+💡 PREPAREDNESS TIP
+[1 specific, actionable preparedness tip relevant to this earthquake]
+
+Keep your response concise, factual, and calm. Do NOT use dramatic language. Be specific to this earthquake."""
+
+    if GEMINI_AVAILABLE:
+        try:
+            response = gemini_model.generate_content(prompt)
+            ai_text = response.text
+            return jsonify({
+                'success': True,
+                'analysis': ai_text,
+                'source': 'gemini',
+                'model': 'gemini-1.5-flash'
+            })
+        except Exception as e:
+            # Fall through to rule-based
+            pass
+
+    # ── Fallback: smart rule-based response ──────────────────────────────────
+    mag_f = float(mag) if str(mag).replace('.','').isdigit() else 0
+    dist_f = float(distance) if str(distance).replace('.','').isdigit() else 999
+    dep_f = float(depth) if str(depth).replace('.','').isdigit() else 10
+
+    if mag_f >= 5.0 or dist_f < 20:
+        situation = f"M{mag} at {location} is a significant earthquake. At {distance}km away and {depth}km depth, this poses an immediate local threat. Check for damage and be ready to drop, cover, and hold on."
+        actions = ["DROP, COVER, and HOLD ON if shaking continues", "Check yourself and others for injuries", "Inspect for gas leaks — do NOT use open flames", "Move away from damaged structures", "Turn on battery radio for official updates"]
+        expect = f"Aftershocks are likely after a M{mag} event. Expect some within the next 24-48 hours. Structural damage is possible in areas closest to the epicenter."
+        safe = ["Shaking has completely stopped for several minutes", "No smell of gas or visible structural damage", "Authorities confirm the area is clear"]
+        tip = "Keep shoes near your bed so you can safely move through debris if an aftershock strikes at night."
+    elif mag_f >= 4.0 or dist_f < 50:
+        situation = f"M{mag} at {location} is a moderate earthquake felt in your area. At {distance}km distance, effects may include shaking, minor object movement, and some alarm. Assess your surroundings calmly."
+        actions = ["Remain calm and check your immediate surroundings", "Look for any fallen objects or hazards", "Check on family members and neighbors", "Avoid using elevators", "Monitor E-TIPS for aftershock updates"]
+        expect = f"Minor aftershocks are possible. The {depth}km depth means surface shaking is moderate. Most well-constructed buildings should be unaffected."
+        safe = ["No visible damage to your building", "No unusual sounds from structure", "Authorities issue all-clear notification"]
+        tip = "Now is a good time to check your emergency kit and make sure your water supply is accessible."
+    else:
+        situation = f"M{mag} at {location} is a minor earthquake recorded {distance}km from your location. At this distance and magnitude, direct impact is minimal, but stay informed."
+        actions = ["No immediate action required", "Stay informed via E-TIPS alerts", "Check that heavy furniture is still secured", "Note the event in case of future aftershocks"]
+        expect = "Minor seismic activity like this is normal in the region. No significant aftershocks are expected from a small-magnitude event."
+        safe = ["You are currently in a safe condition", "Continue normal activities", "No evacuation is necessary"]
+        tip = "Use this as a reminder to review your 72-hour emergency kit this week."
+
+    analysis = f"""🔍 SITUATION ASSESSMENT
+{situation}
+
+⚠️ IMMEDIATE ACTIONS
+{''.join(f'• {a}' + chr(10) for a in actions)}
+🏠 WHAT TO EXPECT
+{expect}
+
+✅ YOU ARE SAFE WHEN
+{''.join(f'• {s}' + chr(10) for s in safe)}
+💡 PREPAREDNESS TIP
+{tip}"""
+
+    return jsonify({
+        'success': True,
+        'analysis': analysis,
+        'source': 'rule-based',
+        'model': 'E-TIPS Safety Engine'
+    })
+
 
 if __name__ == '__main__':
     import os

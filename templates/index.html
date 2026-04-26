@@ -26,7 +26,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     
     <style>
-        /* Interactive line network background */
+        /* Interactive line network background â€” stays BEHIND everything */
         #line-canvas {
             position: fixed;
             top: 0;
@@ -34,7 +34,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 1;
+            z-index: 1;   /* behind all page content */
         }
         
         /* Glassmorphism effect */
@@ -122,33 +122,63 @@
             z-index: 0;
         }
         
-        /* Dark map tiles - make map visible */
+        /* â”€â”€ MAP STACKING FIX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+           The home-page map container must sit ABOVE the fixed line-canvas
+           (z-index: 1). We give it z-index: 10 inside a relative context.   */
+        .map-container-home {
+            position: relative !important;
+            z-index: 10 !important;
+            background-color: #ffffff !important;
+            isolation: isolate;            /* creates its own stacking context */
+        }
+
+        /* Leaflet internals also need to be visible above the canvas */
+        .map-container-home .leaflet-container,
+        .map-container-home #map-home {
+            z-index: 10 !important;
+        }
+
+        /* Dark map tiles */
         .leaflet-tile-pane {
             filter: brightness(0.6) grayscale(0.8) contrast(1.2);
         }
         
-        /* Black map background - fully visible */
-        #map {
-            background-color: #1a1a1a !important;
+        /* White map background */
+        #map,
+        #map-home {
+            background-color: #ffffff !important;
             opacity: 1 !important;
         }
         
         .leaflet-container {
-            background-color: #1a1a1a !important;
+            background-color: #ffffff !important;
             opacity: 1 !important;
         }
         
         .map-container {
-            background-color: #000000 !important;
+            background-color: #ffffff !important;
             z-index: 100;
             position: relative;
         }
         
         #map-page {
-            background-color: #000000 !important;
+            background-color: #ffffff !important;
             z-index: 100;
         }
+
+        /* â”€â”€ MAP SECTION STACKING FIX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+           #map-section must sit ABOVE the fixed #line-canvas (z-index: 1).
+           A white background blocks the canvas from showing through,
+           and z-index: 5 ensures proper stacking order.
+           Only this section is affected â€” canvas stays visible elsewhere. */
+        #map-section {
+            position: relative !important;
+            z-index: 5 !important;
+            background: #ffffff;
+            border-radius: 0.75rem;
+        }
     </style>
+
 </head>
 <body>
     <!-- Interactive Line Network Canvas -->
@@ -233,7 +263,7 @@
     <!-- Home Page -->
     <div id="home-page" class="app-container hidden">
         <div class="pb-24">
-            <!-- Header -->
+            <!-- Header (minimal - logo + notification only) -->
             <div class="app-header">
                 <div class="header-top">
                     <div class="header-logo">
@@ -255,102 +285,81 @@
                         <span id="notification-count" class="notification-badge hidden">0</span>
                     </button>
                 </div>
+            </div>
 
-                <div class="status-card">
+            <!-- â‘  MAP FIRST â€” full-width earthquake map -->
+            <div id="map-section" class="section mt-6">
+                <div class="section-header">
+                    <h2 class="section-title" style="color:#1a1a1a;">Earthquake Map</h2>
+                </div>
+                <div class="map-container-home" style="height: 400px; border-radius: 0.75rem; overflow: hidden; border: 2px solid rgba(220, 20, 60, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
+                    <div id="map-home" style="width: 100%; height: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- â‘¡ STATUS CARD â€” after map -->
+            <div class="section mt-6">
+                <div style="background: linear-gradient(135deg, rgba(220,20,60,0.08), rgba(230,57,70,0.05)); border-radius: 1rem; padding: 1rem; border: 1px solid rgba(220,20,60,0.2); box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
                     <div class="status-content">
                         <div class="status-left">
-                            <p>Current Status</p>
+                            <p style="color: #1a1a1a; font-size: 0.875rem; margin-bottom: 0.25rem; font-weight: 500;">Current Status</p>
                             <div class="status-indicator">
                                 <div class="status-dot"></div>
-                                <span class="status-text">Normal</span>
+                                <span style="font-size: 1.25rem; font-weight: 700; color: #1a1a1a;">Normal</span>
                             </div>
-                            <p class="status-description">No immediate threat detected</p>
+                            <p style="font-size: 0.75rem; color: #4a4a4a; margin-top: 0.25rem;">No immediate threat detected</p>
                         </div>
-                        <div class="status-right">
-                            <p class="status-count" id="earthquake-count">0</p>
-                            <p class="status-label">Recent Events</p>
+                        <div class="status-right" style="text-align: right;">
+                            <p id="earthquake-count" style="font-size: 2rem; font-weight: 700; color: #DC143C;">0</p>
+                            <p style="font-size: 0.75rem; color: #4a4a4a;">Recent Events</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Embedded Map Section - AT THE TOP -->
+            <!-- â‘¢ NEAREST EVENT CARD â€” after map -->
             <div class="section mt-6">
-                <div class="section-header">
-                    <h2 class="section-title">Earthquake Map</h2>
-                </div>
-                
-                <div class="map-container-home" style="height: 400px; border-radius: 0.75rem; overflow: hidden; border: 2px solid rgba(230, 57, 70, 0.3); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
-                    <div id="map-home" style="width: 100%; height: 100%;"></div>
-                </div>
-                
-                <!-- Nearest Event Card - Enhanced Design (CLICKABLE) -->
-                <div id="nearest-event-card-home" class="nearest-event-card" onclick="showNearestEarthquakeAlert()" style="position: relative; margin-top: 1rem; background: linear-gradient(135deg, rgba(29, 53, 87, 0.95), rgba(69, 123, 157, 0.95)); backdrop-filter: blur(15px); border-radius: 1rem; padding: 1.25rem; border: 2px solid rgba(230, 57, 70, 0.4); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); cursor: pointer; transition: all 0.3s ease;">
-                    <!-- Header -->
+                <div id="nearest-event-card-home" class="nearest-event-card" onclick="showNearestEarthquakeAlert()" style="position: relative; background: linear-gradient(135deg, rgba(29, 53, 87, 0.95), rgba(69, 123, 157, 0.95)); backdrop-filter: blur(15px); border-radius: 1rem; padding: 1.25rem; border: 2px solid rgba(220, 20, 60, 0.4); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); cursor: pointer; transition: all 0.3s ease;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                             <circle cx="12" cy="10" r="3"></circle>
                         </svg>
                         <h3 style="color: rgba(255,255,255,0.8); font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Nearest Earthquake</h3>
-                        <div style="margin-left: auto; color: rgba(255,255,255,0.5); font-size: 0.75rem;">Click for details →</div>
+                        <div style="margin-left: auto; color: rgba(255,255,255,0.5); font-size: 0.75rem;">Click for details â†’</div>
                     </div>
-                    
-                    <!-- Content -->
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
                         <div style="flex: 1;">
-                            <!-- Location -->
                             <h2 id="nearest-location-home" style="color: white; font-weight: 700; font-size: 1.125rem; margin: 0 0 0.75rem 0; line-height: 1.3;">Loading...</h2>
-                            
-                            <!-- Details Grid -->
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                                <!-- Distance -->
                                 <div style="display: flex; align-items: center; gap: 0.375rem;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2">
-                                        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
                                     <span id="nearest-distance-home" style="color: rgba(255,255,255,0.85); font-size: 0.8125rem; font-weight: 500;">-</span>
                                 </div>
-                                
-                                <!-- Magnitude -->
                                 <div style="display: flex; align-items: center; gap: 0.375rem;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2">
-                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                                     <span id="nearest-magnitude-home" style="color: rgba(255,255,255,0.85); font-size: 0.8125rem; font-weight: 500;">-</span>
                                 </div>
-                                
-                                <!-- Time -->
                                 <div style="display: flex; align-items: center; gap: 0.375rem;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                     <span id="nearest-time-home" style="color: rgba(255,255,255,0.85); font-size: 0.8125rem; font-weight: 500;">-</span>
                                 </div>
-                                
-                                <!-- Depth -->
                                 <div style="display: flex; align-items: center; gap: 0.375rem;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2">
-                                        <polyline points="6 9 12 15 18 9"></polyline>
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(252, 191, 73, 0.9)" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                                     <span id="nearest-depth-home" style="color: rgba(255,255,255,0.85); font-size: 0.8125rem; font-weight: 500;">-</span>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Risk Badge -->
                         <div id="nearest-risk-badge-home" style="flex-shrink: 0;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Recent Earthquakes with Clickable Cards -->
+            <!-- â‘£ RECENT EARTHQUAKES LIST â€” last -->
             <div class="section mt-6">
                 <div class="section-header">
-                    <h2 class="section-title">Recent Earthquakes</h2>
+                    <h2 class="section-title" style="color:#1a1a1a;">Recent Earthquakes</h2>
                 </div>
-
                 <div id="earthquake-list" class="earthquake-list">
                     <!-- Earthquakes will be loaded here as clickable cards -->
                 </div>
@@ -380,11 +389,7 @@
             <div class="section mt-6">
                 <h2 class="section-title" style="color: white; margin-bottom: 1rem;">Earthquake Preparedness Guide</h2>
                 
-                <div style="background: rgba(247, 127, 0, 0.1); border: 1px solid rgba(247, 127, 0, 0.3); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem;">
-                    <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem; line-height: 1.6;">
-                        📚 Click on each guide below to expand and learn essential earthquake safety procedures.
-                    </p>
-                </div>
+
                 
                 <!-- Before Earthquake Card - Clickable/Expandable -->
                 <div class="guide-card" onclick="toggleGuideCard('before-guide')" style="background: linear-gradient(135deg, rgba(69, 123, 157, 0.2), rgba(69, 123, 157, 0.1)); border: 1px solid rgba(69, 123, 157, 0.3); border-radius: 1rem; overflow: hidden; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s ease;">
@@ -413,18 +418,18 @@
                         </div>
                     </div>
                     
-                    <div id="before-guide" class="guide-content" style="display: none; padding: 1.5rem; background: rgba(69, 123, 157, 0.05);">
-                        <h4 style="color: white; font-weight: 700; margin-bottom: 1rem;">📋 Preparation Checklist:</h4>
-                        <ul style="color: rgba(255,255,255,0.85); font-size: 0.9375rem; line-height: 2; padding-left: 1.5rem; margin-bottom: 1.5rem;">
-                            <li><strong style="color: #457b9d;">✓ Secure Your Space:</strong> Anchor heavy furniture and appliances to walls</li>
-                            <li><strong style="color: #457b9d;">✓ Emergency Kit:</strong> Prepare 72-hour supplies (water, food, first aid)</li>
-                            <li><strong style="color: #457b9d;">✓ Identify Safe Spots:</strong> Locate sturdy tables in each room</li>
-                            <li><strong style="color: #457b9d;">✓ Family Plan:</strong> Establish meeting points and communication</li>
-                            <li><strong style="color: #457b9d;">✓ Practice Drills:</strong> Monthly DROP, COVER, HOLD ON practice</li>
-                            <li><strong style="color: #457b9d;">✓ Documents:</strong> Keep vital papers in waterproof container</li>
+                    <div id="before-guide" class="guide-content" style="display: none; padding: 1.5rem; background: #ffffff; border-top: 1px solid rgba(69,123,157,0.15);">
+                        <h4 style="color: #1d3557; font-weight: 700; margin-bottom: 1rem;">📋 Preparation Checklist:</h4>
+                        <ul style="color: #2d2d2d; font-size: 0.9375rem; line-height: 2; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                            <li><strong style="color: #457b9d;">✔ Secure Your Space:</strong> Anchor heavy furniture and appliances to walls</li>
+                            <li><strong style="color: #457b9d;">✔ Emergency Kit:</strong> Prepare 72-hour supplies (water, food, first aid)</li>
+                            <li><strong style="color: #457b9d;">✔ Identify Safe Spots:</strong> Locate sturdy tables in each room</li>
+                            <li><strong style="color: #457b9d;">✔ Family Plan:</strong> Establish meeting points and communication</li>
+                            <li><strong style="color: #457b9d;">✔ Practice Drills:</strong> Monthly DROP, COVER, HOLD ON practice</li>
+                            <li><strong style="color: #457b9d;">✔ Documents:</strong> Keep vital papers in waterproof container</li>
                         </ul>
                         <div style="background: rgba(69, 123, 157, 0.2); border-left: 4px solid #457b9d; padding: 1rem; border-radius: 0.5rem;">
-                            <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem;">
+                            <p style="color: #1a1a1a; font-size: 0.875rem;">
                                 <strong>💡 Pro Tip:</strong> Review your plan every 6 months and check kit expiration dates.
                             </p>
                         </div>
@@ -460,33 +465,33 @@
                         </div>
                     </div>
                     
-                    <div id="during-guide" class="guide-content" style="display: none; padding: 1.5rem; background: rgba(230, 57, 70, 0.05);">
+                    <div id="during-guide" class="guide-content" style="display: none; padding: 1.5rem; background: #ffffff; border-top: 1px solid rgba(230,57,70,0.15);">
                         <div style="background: rgba(230, 57, 70, 0.15); border: 2px solid #e63946; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem;">
                             <h5 style="color: #e63946; font-weight: 700; font-size: 1.125rem; margin-bottom: 1rem; text-align: center;">THE GOLDEN RULE</h5>
                             <div style="display: flex; flex-direction: column; gap: 1rem;">
-                                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem;">
+                                <div style="background: #1d3557; padding: 1rem; border-radius: 0.5rem;">
                                     <h6 style="color: #e63946; font-weight: 700; margin-bottom: 0.5rem;">1️⃣ DROP</h6>
                                     <p style="color: rgba(255,255,255,0.9); font-size: 0.9375rem;">Drop to hands and knees immediately</p>
                                 </div>
-                                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem;">
+                                <div style="background: #1d3557; padding: 1rem; border-radius: 0.5rem;">
                                     <h6 style="color: #e63946; font-weight: 700; margin-bottom: 0.5rem;">2️⃣ COVER</h6>
                                     <p style="color: rgba(255,255,255,0.9); font-size: 0.9375rem;">Cover head and neck under sturdy table</p>
                                 </div>
-                                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem;">
+                                <div style="background: #1d3557; padding: 1rem; border-radius: 0.5rem;">
                                     <h6 style="color: #e63946; font-weight: 700; margin-bottom: 0.5rem;">3️⃣ HOLD ON</h6>
                                     <p style="color: rgba(255,255,255,0.9); font-size: 0.9375rem;">Hold shelter until shaking stops</p>
                                 </div>
                             </div>
                         </div>
-                        <h4 style="color: white; font-weight: 700; margin-bottom: 1rem;">📍 Location Actions:</h4>
-                        <ul style="color: rgba(255,255,255,0.85); font-size: 0.9375rem; line-height: 2; padding-left: 1.5rem; margin-bottom: 1rem;">
+                        <h4 style="color: #a4161a; font-weight: 700; margin-bottom: 1rem;">&#x1F4CD; Location Actions:</h4>
+                        <ul style="color: #2d2d2d; font-size: 0.9375rem; line-height: 2; padding-left: 1.5rem; margin-bottom: 1rem;">
                             <li><strong style="color: #e63946;">🏠 Indoors:</strong> Stay inside, away from windows</li>
                             <li><strong style="color: #e63946;">🌳 Outdoors:</strong> Move to open area, away from buildings</li>
                             <li><strong style="color: #e63946;">🚗 Vehicle:</strong> Pull over safely, stay inside</li>
                             <li><strong style="color: #e63946;">🏢 High-Rise:</strong> No elevators, stay away from windows</li>
                         </ul>
                         <div style="background: rgba(230, 57, 70, 0.2); border-left: 4px solid #e63946; padding: 1rem; border-radius: 0.5rem;">
-                            <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem;">
+                            <p style="color: #1a1a1a; font-size: 0.875rem;">
                                 <strong>⚠️ Warning:</strong> Most injuries from falling objects. Protect your head and neck!
                             </p>
                         </div>
@@ -521,19 +526,19 @@
                         </div>
                     </div>
                     
-                    <div id="after-guide" class="guide-content" style="display: none; padding: 1.5rem; background: rgba(42, 157, 143, 0.05);">
-                        <h4 style="color: white; font-weight: 700; margin-bottom: 1rem;">🏥 Recovery Steps:</h4>
-                        <ul style="color: rgba(255,255,255,0.85); font-size: 0.9375rem; line-height: 2; padding-left: 1.5rem; margin-bottom: 1.5rem;">
-                            <li><strong style="color: #2a9d8f;">✓ Check Injuries:</strong> Provide first aid, get medical help</li>
-                            <li><strong style="color: #2a9d8f;">✓ Inspect Home:</strong> Check for structural damage carefully</li>
-                            <li><strong style="color: #2a9d8f;">✓ Gas & Utilities:</strong> Turn off gas if you smell leaks</li>
-                            <li><strong style="color: #2a9d8f;">✓ Stay Informed:</strong> Listen to radio or E-TIPS for updates</li>
-                            <li><strong style="color: #2a9d8f;">✓ Expect Aftershocks:</strong> Be ready to DROP, COVER, HOLD ON</li>
-                            <li><strong style="color: #2a9d8f;">✓ Help Others:</strong> Check on neighbors who need assistance</li>
+                    <div id="after-guide" class="guide-content" style="display: none; padding: 1.5rem; background: #ffffff; border-top: 1px solid rgba(42,157,143,0.15);">
+                        <h4 style="color: #1b7f72; font-weight: 700; margin-bottom: 1rem;">🏥 Recovery Steps:</h4>
+                        <ul style="color: #2d2d2d; font-size: 0.9375rem; line-height: 2; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                            <li><strong style="color: #2a9d8f;">✔ Check Injuries:</strong> Provide first aid, get medical help</li>
+                            <li><strong style="color: #2a9d8f;">✔ Inspect Home:</strong> Check for structural damage carefully</li>
+                            <li><strong style="color: #2a9d8f;">✔ Gas & Utilities:</strong> Turn off gas if you smell leaks</li>
+                            <li><strong style="color: #2a9d8f;">✔ Stay Informed:</strong> Listen to radio or E-TIPS for updates</li>
+                            <li><strong style="color: #2a9d8f;">✔ Expect Aftershocks:</strong> Be ready to DROP, COVER, HOLD ON</li>
+                            <li><strong style="color: #2a9d8f;">✔ Help Others:</strong> Check on neighbors who need assistance</li>
                         </ul>
                         <div style="background: rgba(230, 57, 70, 0.15); border: 2px solid #e63946; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem;">
                             <h5 style="color: #e63946; font-weight: 700; margin-bottom: 0.5rem;">🚫 DO NOT:</h5>
-                            <ul style="color: rgba(255,255,255,0.9); font-size: 0.875rem; padding-left: 1.25rem;">
+                            <ul style="color: #2d2d2d; font-size: 0.875rem; padding-left: 1.25rem;">
                                 <li>Use matches or flames until sure no gas leaks</li>
                                 <li>Turn on lights until checked for damage</li>
                                 <li>Enter damaged buildings</li>
@@ -541,7 +546,7 @@
                             </ul>
                         </div>
                         <div style="background: rgba(42, 157, 143, 0.2); border-left: 4px solid #2a9d8f; padding: 1rem; border-radius: 0.5rem;">
-                            <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem;">
+                            <p style="color: #1a1a1a; font-size: 0.875rem;">
                                 <strong>💡 Tip:</strong> Emotional recovery is important. Talk about your experience and seek help if needed.
                             </p>
                         </div>
@@ -571,7 +576,7 @@
             </div>
             
             <div class="section mt-6">
-                <h2 class="section-title" style="color: white; margin-bottom: 1rem;">Active Warnings & Notifications</h2>
+                <h2 class="section-title" style="color: #1a1a1a; margin-bottom: 1rem;">Active Warnings &amp; Notifications</h2>
                 
                 <!-- Alert notifications will be dynamically loaded here -->
                 <div id="alerts-list">
@@ -588,8 +593,8 @@
                             <line x1="12" y1="8" x2="12.01" y2="8"></line>
                         </svg>
                         <div>
-                            <h4 style="color: white; font-weight: 600; margin-bottom: 0.5rem;">Stay Informed</h4>
-                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Click on any alert to view detailed information and AI-powered risk assessment for your location.</p>
+                            <h4 style="color: #1a1a1a; font-weight: 600; margin-bottom: 0.5rem;">Stay Informed</h4>
+                            <p style="color: #4a4a4a; font-size: 0.875rem; line-height: 1.5;">Click on any alert to view detailed information and AI-powered risk assessment for your location.</p>
                         </div>
                     </div>
                 </div>
@@ -603,7 +608,7 @@
         <div id="community-main" class="pb-24">
             <div class="app-header">
                 <div class="header-top">
-                    <button onclick="showView('home')" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                    <button onclick="showView('home')" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
@@ -620,8 +625,8 @@
             <!-- Community Header -->
             <div class="section mt-6">
                 <div class="community-header">
-                    <h2 style="color: white; font-weight: 700; font-size: 1.25rem; margin-bottom: 0.5rem;">🤝 Earthquake Preparedness Hub</h2>
-                    <p style="color: rgba(255,255,255,0.8); font-size: 0.875rem; line-height: 1.6;">
+                    <h2 style="color: #1a1a1a; font-weight: 700; font-size: 1.25rem; margin-bottom: 0.5rem;">&#x1F91D; Earthquake Preparedness Hub</h2>
+                    <p style="color: #4a4a4a; font-size: 0.875rem; line-height: 1.6;">
                         Access comprehensive safety resources, drill tutorials, and emergency preparedness guides. Everything you need to stay safe during earthquakes.
                     </p>
                 </div>
@@ -631,20 +636,19 @@
             <div class="section mt-6">
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                     <!-- Safety Tips Card -->
-                    <div onclick="showCommunityCategory('safety-tips')" style="background: linear-gradient(135deg, rgba(247, 127, 0, 0.2), rgba(247, 127, 0, 0.1)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(247, 127, 0, 0.3); cursor: pointer; transition: all 0.3s ease;" class="category-card">
-                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(247, 127, 0, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    <div onclick="showCommunityCategory('safety-tips')" style="background: linear-gradient(135deg, rgba(220, 20, 60, 0.08), rgba(220, 20, 60, 0.04)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220, 20, 60, 0.2); cursor: pointer; transition: all 0.3s ease;" class="category-card">
+                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(220, 20, 60, 0.12); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <polyline points="9 12 11 14 15 10"></polyline>
                             </svg>
                         </div>
-                        <h3 style="color: white; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Safety Tips</h3>
-                        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Essential earthquake safety tips for before, during, and after</p>
+                        <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Safety Tips</h3>
+                        <p style="color: #4a4a4a; font-size: 0.875rem; line-height: 1.5;">Essential earthquake safety tips for before, during, and after</p>
                     </div>
                     
                     <!-- Reminders Card -->
-                    <div onclick="showCommunityCategory('reminders')" style="background: linear-gradient(135deg, rgba(247, 127, 0, 0.2), rgba(247, 127, 0, 0.1)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(247, 127, 0, 0.3); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;" class="category-card">
+                    <div onclick="showCommunityCategory('reminders')" style="background: linear-gradient(135deg, rgba(220, 20, 60, 0.08), rgba(220, 20, 60, 0.04)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220, 20, 60, 0.2); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;" class="category-card">
                         <!-- Background Images Preview (showing all 6 images) -->
                         <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 40%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); opacity: 0.15; pointer-events: none;">
                             <img src="{{ url_for('static', filename='images/reminder-1.jpg') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
@@ -657,33 +661,34 @@
                         
                         <!-- Content -->
                         <div style="position: relative; z-index: 1;">
-                            <div style="width: 3.5rem; height: 3.5rem; background: rgba(247, 127, 0, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
-                                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
-                                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                            <div style="width: 3.5rem; height: 3.5rem; background: rgba(220, 20, 60, 0.12); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                    <circle cx="12" cy="3" r="1"></circle>
                                 </svg>
                             </div>
-                            <h3 style="color: white; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Reminders</h3>
-                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Important preparedness reminders and maintenance schedules</p>
+                            <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Reminders</h3>
+                            <p style="color: #4a4a4a; font-size: 0.875rem; line-height: 1.5;">Important preparedness reminders and maintenance schedules</p>
                             
                             <!-- Small Image Previews (showing all 6) -->
                             <div style="display: flex; gap: 0.25rem; margin-top: 0.75rem; flex-wrap: wrap;">
-                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(220, 20, 60, 0.4); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
                                     <img src="{{ url_for('static', filename='images/reminder-1.jpg') }}" alt="Reminder 1" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
-                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(220, 20, 60, 0.4); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
                                     <img src="{{ url_for('static', filename='images/reminder-2.jpg') }}" alt="Reminder 2" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
-                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(220, 20, 60, 0.4); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
                                     <img src="{{ url_for('static', filename='images/reminder-3.jpg') }}" alt="Reminder 3" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
-                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(220, 20, 60, 0.4); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
                                     <img src="{{ url_for('static', filename='images/reminder-4.jpg') }}" alt="Reminder 4" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
-                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(220, 20, 60, 0.4); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
                                     <img src="{{ url_for('static', filename='images/reminder-5.jpg') }}" alt="Reminder 5" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
-                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(247, 127, 0, 0.5); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                                <div style="width: 2rem; height: 2rem; border-radius: 0.375rem; overflow: hidden; border: 2px solid rgba(220, 20, 60, 0.4); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
                                     <img src="{{ url_for('static', filename='images/reminder-6.jpg') }}" alt="Reminder 6" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
                             </div>
@@ -691,33 +696,39 @@
                     </div>
                     
                     <!-- Drill Tutorials Card -->
-                    <div onclick="showCommunityCategory('drill-tutorials')" style="background: linear-gradient(135deg, rgba(247, 127, 0, 0.2), rgba(247, 127, 0, 0.1)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(247, 127, 0, 0.3); cursor: pointer; transition: all 0.3s ease;" class="category-card">
-                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(247, 127, 0, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    <div onclick="showCommunityCategory('drill-tutorials')" style="background: linear-gradient(135deg, rgba(220, 20, 60, 0.08), rgba(220, 20, 60, 0.04)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220, 20, 60, 0.2); cursor: pointer; transition: all 0.3s ease;" class="category-card">
+                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(220, 20, 60, 0.12); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="9" y1="13" x2="15" y2="13"></line>
+                                <line x1="9" y1="17" x2="13" y2="17"></line>
+                                <polyline points="9 9 10 9"></polyline>
                             </svg>
                         </div>
-                        <h3 style="color: white; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Drill Tutorials</h3>
-                        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Step-by-step emergency drill instructions and procedures</p>
+                        <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Drill Tutorials</h3>
+                        <p style="color: #4a4a4a; font-size: 0.875rem; line-height: 1.5;">Step-by-step emergency drill instructions and procedures</p>
                     </div>
                     
                     <!-- Emergency Kit Card -->
-                    <div onclick="showCommunityCategory('emergency-kit')" style="background: linear-gradient(135deg, rgba(247, 127, 0, 0.2), rgba(247, 127, 0, 0.1)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(247, 127, 0, 0.3); cursor: pointer; transition: all 0.3s ease;" class="category-card">
-                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(247, 127, 0, 0.3); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f77f00" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
+                    <div onclick="showCommunityCategory('emergency-kit')" style="background: linear-gradient(135deg, rgba(220, 20, 60, 0.08), rgba(220, 20, 60, 0.04)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220, 20, 60, 0.2); cursor: pointer; transition: all 0.3s ease;" class="category-card">
+                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(220, 20, 60, 0.12); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
+                                <rect x="3" y="7" width="18" height="14" rx="2"></rect>
+                                <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="12" y1="12" x2="12" y2="16"></line>
+                                <line x1="10" y1="14" x2="14" y2="14"></line>
                             </svg>
                         </div>
-                        <h3 style="color: white; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Emergency Kit</h3>
-                        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;">Complete checklist of essential emergency supplies</p>
+                        <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">Emergency Kit</h3>
+                        <p style="color: #4a4a4a; font-size: 0.875rem; line-height: 1.5;">Complete checklist of essential emergency supplies</p>
                     </div>
                 </div>
             </div>
             
             <!-- Daily Safety Tips -->
             <div class="section community-section">
-                <h3 class="community-section-title">💡 Daily Safety Tips</h3>
+                <h3 class="community-section-title">&#x1F4A1; Daily Safety Tips</h3>
                 <div class="tip-card">
                     <span class="tip-number">1</span>
                     <span class="tip-text">Keep a flashlight and sturdy shoes by your bed</span>
@@ -740,44 +751,11 @@
                 </div>
             </div>
 
-            <!-- Upcoming Programs -->
-            <div class="section community-section">
-                <h3 class="community-section-title">📅 Upcoming Programs</h3>
-                <div class="event-card">
-                    <span class="event-badge drill">DRILL</span>
-                    <h4 class="event-title">Barangay Earthquake Drill</h4>
-                    <p class="event-description">Join the monthly earthquake drill at Barangay Poblacion covered court. Practice your emergency response skills.</p>
-                    <div class="event-meta">
-                        <span>📅 Jan 26, 2024</span>
-                        <span>📍 Barangay Poblacion Covered Court</span>
-                    </div>
-                </div>
-                
-                <div class="event-card">
-                    <span class="event-badge workshop">WORKSHOP</span>
-                    <h4 class="event-title">Family Emergency Planning Workshop</h4>
-                    <p class="event-description">Learn how to create a comprehensive family emergency plan. Free materials and refreshments provided.</p>
-                    <div class="event-meta">
-                        <span>📅 Feb 10, 2024</span>
-                        <span>📍 Tupi Municipal Hall</span>
-                    </div>
-                </div>
-                
-                <div class="event-card">
-                    <span class="event-badge training">TRAINING</span>
-                    <h4 class="event-title">First Aid & CPR Training</h4>
-                    <p class="event-description">Basic first aid and CPR training for community members. Certification provided upon completion.</p>
-                    <div class="event-meta">
-                        <span>📅 Feb 17, 2024</span>
-                        <span>📍 Tupi Health Center</span>
-                    </div>
-                </div>
-            </div>
-            
+
             <!-- Emergency Contacts -->
             <div class="section community-section">
-                <h3 class="community-section-title">📞 Emergency Contacts</h3>
-                <p style="color: rgba(255,255,255,0.6); font-size: 0.875rem; margin-bottom: 1rem;">Tap any contact to call directly</p>
+                <h3 class="community-section-title">&#x1F4DE; Emergency Contacts</h3>
+                <p style="color: #555555; font-size: 0.875rem; margin-bottom: 1rem;">Tap any contact to call directly</p>
                 
                 <div class="contact-card" onclick="requestCallPermission('PHIVOLCS', '02-8426-1468', 'tel:+6284261468')" style="cursor: pointer; transition: all 0.3s ease;">
                     <div class="contact-info">
@@ -829,19 +807,20 @@
                 
                 <!-- Privacy Notice -->
                 <div style="background: rgba(69, 123, 157, 0.1); border-radius: 0.75rem; padding: 1rem; margin-top: 1rem; border-left: 4px solid #457b9d;">
-                    <p style="color: rgba(255,255,255,0.8); font-size: 0.875rem; line-height: 1.6;">
-                        <strong style="color: #457b9d;">🔒 Privacy Notice:</strong> When you tap a contact, E-TIPS will request permission to access your phone's dialer. We only use this to help you make emergency calls. Your contact information is never stored or shared.
+                    <p style="color: #333333; font-size: 0.875rem; line-height: 1.6;">
+                        <strong style="color: #457b9d;">&#x1F512; Privacy Notice:</strong> When you tap a contact, E-TIPS will request permission to access your phone's dialer. We only use this to help you make emergency calls. Your contact information is never stored or shared.
                     </p>
                 </div>
             </div>
             
             <!-- Useful Links -->
             <div class="section community-section">
-                <h3 class="community-section-title">🔗 Useful Links</h3>
+                <h3 class="community-section-title">&#x1F517; Useful Links</h3>
                 <div style="display: grid; gap: 0.75rem;">
+
                     <!-- PHIVOLCS -->
-                    <a href="https://www.phivolcs.dost.gov.ph/" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 255, 255, 0.05); border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(69, 123, 157, 0.5)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='rgba(255, 255, 255, 0.1)'">
-                        <div style="width: 2.5rem; height: 2.5rem; background: rgba(69, 123, 157, 0.2); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <a href="https://www.phivolcs.dost.gov.ph/" target="_blank" rel="noopener noreferrer" style="background: #f0f4f8; border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(69,123,157,0.2); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease;" onmouseover="this.style.background='#dde9f3'; this.style.borderColor='rgba(69,123,157,0.5)'" onmouseout="this.style.background='#f0f4f8'; this.style.borderColor='rgba(69,123,157,0.2)'">
+                        <div style="width: 2.5rem; height: 2.5rem; background: rgba(69,123,157,0.15); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#457b9d" stroke-width="2">
                                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -849,21 +828,29 @@
                             </svg>
                         </div>
                         <div style="flex: 1;">
-                            <h4 style="color: white; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
-                                PHIVOLCS Website
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
-                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                    <polyline points="15 3 21 3 21 9"></polyline>
-                                    <line x1="10" y1="14" x2="21" y2="3"></line>
-                                </svg>
-                            </h4>
-                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; margin: 0;">Official earthquake information and updates from Philippines</p>
+                            <h4 style="color: #1a1a1a; font-weight: 600; margin-bottom: 0.25rem;">PHIVOLCS Website &#x2197;</h4>
+                            <p style="color: #4a4a4a; font-size: 0.875rem; margin: 0;">Official Philippine earthquake monitoring and seismic updates</p>
                         </div>
                     </a>
-                    
+
+                    <!-- NDRRMC -->
+                    <a href="https://www.ndrrmc.gov.ph/" target="_blank" rel="noopener noreferrer" style="background: #f0f4f8; border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(220,20,60,0.2); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease;" onmouseover="this.style.background='#fdf0f2'; this.style.borderColor='rgba(220,20,60,0.5)'" onmouseout="this.style.background='#f0f4f8'; this.style.borderColor='rgba(220,20,60,0.2)'">
+                        <div style="width: 2.5rem; height: 2.5rem; background: rgba(220,20,60,0.1); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
+                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="color: #1a1a1a; font-weight: 600; margin-bottom: 0.25rem;">NDRRMC Philippines &#x2197;</h4>
+                            <p style="color: #4a4a4a; font-size: 0.875rem; margin: 0;">National Disaster Risk Reduction and Management Council</p>
+                        </div>
+                    </a>
+
                     <!-- USGS -->
-                    <a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 255, 255, 0.05); border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(230, 57, 70, 0.5)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='rgba(255, 255, 255, 0.1)'">
-                        <div style="width: 2.5rem; height: 2.5rem; background: rgba(230, 57, 70, 0.2); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener noreferrer" style="background: #f0f4f8; border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(230,57,70,0.2); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease;" onmouseover="this.style.background='#fdf0f2'; this.style.borderColor='rgba(230,57,70,0.5)'" onmouseout="this.style.background='#f0f4f8'; this.style.borderColor='rgba(230,57,70,0.2)'">
+                        <div style="width: 2.5rem; height: 2.5rem; background: rgba(230,57,70,0.1); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="2" y1="12" x2="22" y2="12"></line>
@@ -871,46 +858,21 @@
                             </svg>
                         </div>
                         <div style="flex: 1;">
-                            <h4 style="color: white; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
-                                USGS Earthquakes
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
-                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                    <polyline points="15 3 21 3 21 9"></polyline>
-                                    <line x1="10" y1="14" x2="21" y2="3"></line>
-                                </svg>
-                            </h4>
-                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; margin: 0;">Global seismic data and real-time monitoring</p>
+                            <h4 style="color: #1a1a1a; font-weight: 600; margin-bottom: 0.25rem;">USGS Earthquake Hazards &#x2197;</h4>
+                            <p style="color: #4a4a4a; font-size: 0.875rem; margin: 0;">Global real-time seismic data and earthquake monitoring</p>
                         </div>
                     </a>
-                    
-                    <!-- Ready.gov -->
-                    <a href="https://www.ready.gov/earthquakes" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 255, 255, 0.05); border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.1); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(42, 157, 143, 0.5)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='rgba(255, 255, 255, 0.1)'">
-                        <div style="width: 2.5rem; height: 2.5rem; background: rgba(42, 157, 143, 0.2); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                            </svg>
-                        </div>
-                        <div style="flex: 1;">
-                            <h4 style="color: white; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
-                                Ready.gov
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2">
-                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                    <polyline points="15 3 21 3 21 9"></polyline>
-                                    <line x1="10" y1="14" x2="21" y2="3"></line>
-                                </svg>
-                            </h4>
-                            <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; margin: 0;">Comprehensive disaster preparedness resources</p>
-                        </div>
-                    </a>
+
                 </div>
             </div>
         </div>
+
         
         <!-- Safety Tips Page -->
         <div id="safety-tips-page" class="category-page pb-24 hidden">
             <div class="app-header">
                 <div class="header-top">
-                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
@@ -933,7 +895,7 @@
         <div id="reminders-page" class="category-page pb-24 hidden">
             <div class="app-header">
                 <div class="header-top">
-                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
@@ -956,7 +918,7 @@
         <div id="drill-tutorials-page" class="category-page pb-24 hidden">
             <div class="app-header">
                 <div class="header-top">
-                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
@@ -979,7 +941,7 @@
         <div id="drill-detail-page" class="category-page pb-24 hidden">
             <div class="app-header">
                 <div class="header-top">
-                    <button onclick="backToDrillTutorials()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                    <button onclick="backToDrillTutorials()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
@@ -999,20 +961,20 @@
                     <img id="drill-detail-image" src="" alt="Drill" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.4;">
                     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8));"></div>
                     <div style="position: absolute; bottom: 1rem; left: 1rem; right: 1rem;">
-                        <p id="drill-detail-description" style="color: rgba(255,255,255,0.9); font-size: 0.875rem; line-height: 1.5; margin-bottom: 0.75rem;"></p>
-                        <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; color: rgba(255,255,255,0.9);">
-                            <span>⏱️ <span id="drill-detail-duration"></span></span>
-                            <span>📊 <span id="drill-detail-difficulty"></span></span>
+                        <p id="drill-detail-description" style="color: #1a1a1a; font-size: 0.875rem; line-height: 1.5; margin-bottom: 0.75rem;"></p>
+                        <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; color: #1a1a1a;">
+                            <span>â±ï¸ <span id="drill-detail-duration"></span></span>
+                            <span>ðŸ“Š <span id="drill-detail-difficulty"></span></span>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Steps -->
-                <h3 style="color: white; font-weight: 700; font-size: 1.125rem; margin-bottom: 1rem;">📋 Step-by-Step Instructions</h3>
+                <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1.125rem; margin-bottom: 1rem;">📋 Step-by-Step Instructions</h3>
                 <div id="drill-detail-steps"></div>
                 
                 <!-- Important Notes -->
-                <h3 style="color: white; font-weight: 700; font-size: 1.125rem; margin-top: 2rem; margin-bottom: 1rem;">⚠️ Important Notes</h3>
+                <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1.125rem; margin-top: 2rem; margin-bottom: 1rem;">⚠️ Important Notes</h3>
                 <div id="drill-detail-notes"></div>
             </div>
         </div>
@@ -1021,7 +983,7 @@
         <div id="emergency-kit-page" class="category-page pb-24 hidden">
             <div class="app-header">
                 <div class="header-top">
-                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
+                    <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
@@ -1037,7 +999,7 @@
             
             <div class="section mt-6">
                 <div style="background: rgba(230, 57, 70, 0.1); border: 1px solid rgba(230, 57, 70, 0.3); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.5rem;">
-                    <p style="color: rgba(255,255,255,0.9); font-size: 0.875rem; line-height: 1.6;">
+                    <p style="color: #1a1a1a; font-size: 0.875rem; line-height: 1.6;">
                         ✅ Check off items as you add them to your emergency kit. Aim to have supplies for at least 72 hours.
                     </p>
                 </div>
@@ -1052,7 +1014,7 @@
     </div>
 
     <!-- SINGLE FIXED BOTTOM NAVIGATION - OUTSIDE ALL PAGES -->
-    <nav class="bottom-nav">
+    <nav class="bottom-nav" style="display: none;">
         <button class="nav-item" onclick="showView('home')">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -1089,7 +1051,7 @@
     <div id="earthquake-detail-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">📍 Earthquake Details</h3>
+                <h3 class="modal-title">&#x1F4CD; Earthquake Details</h3>
                 <button class="close-btn" onclick="closeEarthquakeDetailModal()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1128,7 +1090,7 @@
     <div id="risk-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">🤖 AI Risk Assessment</h3>
+                <h3 class="modal-title">ðŸ¤– AI Risk Assessment</h3>
                 <button class="close-btn" onclick="closeRiskModal()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1147,7 +1109,7 @@
     <div id="all-earthquakes-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">📍 All Earthquakes</h3>
+                <h3 class="modal-title">&#x1F4CD; All Earthquakes</h3>
                 <button class="close-btn" onclick="closeAllEarthquakesModal()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1218,7 +1180,7 @@
                     console.warn('⚠️ Google OAuth initialization failed:', error);
                 }
             } else {
-                console.log('ℹ️ Google OAuth not configured - using demo mode');
+                console.log('â„¹ï¸ Google OAuth not configured - using demo mode');
             }
             
             // Initialize Facebook SDK only if properly configured
@@ -1237,7 +1199,7 @@
                     console.warn('⚠️ Facebook SDK initialization failed:', error);
                 }
             } else {
-                console.log('ℹ️ Facebook OAuth not configured - using demo mode');
+                console.log('â„¹ï¸ Facebook OAuth not configured - using demo mode');
             }
             
             // Initialize Apple Sign In only if properly configured
@@ -1254,7 +1216,7 @@
                     console.warn('⚠️ Apple Sign In initialization failed:', error);
                 }
             } else {
-                console.log('ℹ️ Apple Sign In not configured - using demo mode');
+                console.log('â„¹ï¸ Apple Sign In not configured - using demo mode');
             }
         }
         
@@ -1265,7 +1227,7 @@
         // Override the mock Google login with real OAuth (only if configured)
         window.loginWithGoogleReal = function() {
             if (!isOAuthConfigured('google')) {
-                console.log('ℹ️ Google OAuth not configured - using demo mode');
+                console.log('â„¹ï¸ Google OAuth not configured - using demo mode');
                 showLoadingToast('Using demo Google login...');
                 // Use mock login
                 setTimeout(() => {
@@ -1380,7 +1342,7 @@
         // Override the mock Facebook login with real OAuth (only if configured)
         window.loginWithFacebookReal = function() {
             if (!isOAuthConfigured('facebook')) {
-                console.log('ℹ️ Facebook OAuth not configured - using demo mode');
+                console.log('â„¹ï¸ Facebook OAuth not configured - using demo mode');
                 showLoadingToast('Using demo Facebook login...');
                 // Use mock login
                 setTimeout(() => {
@@ -1452,7 +1414,7 @@
         // Override the mock Apple login with real OAuth (only if configured)
         window.loginWithAppleReal = function() {
             if (!isOAuthConfigured('apple')) {
-                console.log('ℹ️ Apple Sign In not configured - using demo mode');
+                console.log('â„¹ï¸ Apple Sign In not configured - using demo mode');
                 showLoadingToast('Using demo Apple login...');
                 // Use mock login
                 setTimeout(() => {
@@ -1581,8 +1543,8 @@
         // Call on page load
         checkChromeAccounts();
         
-        console.log('🔐 Real OAuth system initialized');
-        console.log('📝 To enable real authentication:');
+        console.log('ðŸ” Real OAuth system initialized');
+        console.log('ðŸ“ To enable real authentication:');
         console.log('1. Get Google Client ID from: https://console.cloud.google.com/');
         console.log('2. Get Facebook App ID from: https://developers.facebook.com/');
         console.log('3. Get Apple Client ID from: https://developer.apple.com/');
@@ -1627,10 +1589,14 @@
             }
             
             draw() {
+                // Red glowing dots
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#e63946';
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(230, 57, 70, 0.5)';
+                ctx.fillStyle = '#e63946';
                 ctx.fill();
+                ctx.shadowBlur = 0;
             }
         }
         
@@ -1649,28 +1615,37 @@
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (distance < maxDistance) {
+                        // Red glowing lines
+                        const opacity = 0.6 * (1 - distance / maxDistance);
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = `rgba(230, 57, 70, ${opacity})`;
                         ctx.beginPath();
                         ctx.moveTo(nodes[i].x, nodes[i].y);
                         ctx.lineTo(nodes[j].x, nodes[j].y);
-                        ctx.strokeStyle = `rgba(230, 57, 70, ${0.2 * (1 - distance / maxDistance)})`;
-                        ctx.lineWidth = 1;
+                        ctx.strokeStyle = `rgba(230, 57, 70, ${opacity})`;
+                        ctx.lineWidth = 1.5;
                         ctx.stroke();
+                        ctx.shadowBlur = 0;
                     }
                 }
                 
-                // Connect to mouse
+                // Connect to mouse with red glow
                 if (mouse.x !== null && mouse.y !== null) {
                     const dx = nodes[i].x - mouse.x;
                     const dy = nodes[i].y - mouse.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (distance < maxDistance * 1.5) {
+                        const opacity = 0.8 * (1 - distance / (maxDistance * 1.5));
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = `rgba(230, 57, 70, ${opacity})`;
                         ctx.beginPath();
                         ctx.moveTo(nodes[i].x, nodes[i].y);
                         ctx.lineTo(mouse.x, mouse.y);
-                        ctx.strokeStyle = `rgba(247, 127, 0, ${0.5 * (1 - distance / (maxDistance * 1.5))})`;
+                        ctx.strokeStyle = `rgba(230, 57, 70, ${opacity})`;
                         ctx.lineWidth = 2;
                         ctx.stroke();
+                        ctx.shadowBlur = 0;
                     }
                 }
             }
@@ -1678,13 +1653,39 @@
         
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
+            // --- MAP EXCLUSION CLIP ----------------------------------------
+            // Get the map section's position in the viewport each frame so
+            // the exclusion area follows correctly even when the user scrolls.
+            const mapSection = document.getElementById('map-section');
+            if (mapSection) {
+                const r = mapSection.getBoundingClientRect();
+                // Build a clipping region = full canvas MINUS the map rect.
+                ctx.save();
+                ctx.beginPath();
+                // Outer rectangle (full canvas) â€” drawn clockwise
+                ctx.rect(0, 0, canvas.width, canvas.height);
+                // Map cutout â€” drawn counter-clockwise (creates a hole)
+                ctx.moveTo(r.left,           r.top);
+                ctx.lineTo(r.left,           r.bottom);
+                ctx.lineTo(r.right,          r.bottom);
+                ctx.lineTo(r.right,          r.top);
+                ctx.closePath();
+                ctx.clip('evenodd');   // "even-odd" rule punches the hole
+            }
+            // ---------------------------------------------------------------
+
             nodes.forEach(node => {
                 node.update();
                 node.draw();
             });
-            
+
             drawLines();
+
+            if (mapSection) {
+                ctx.restore();   // remove clip â€” restore full canvas for next frame
+            }
+
             requestAnimationFrame(animate);
         }
         
