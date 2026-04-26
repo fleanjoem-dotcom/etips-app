@@ -768,6 +768,30 @@ async function performRiskAssessmentForQuake(quakeId) {
     const quake = earthquakes.find(q => q.id === quakeId);
     if (!quake) return;
 
+    // Offline check - AI needs internet
+    if (!navigator.onLine) {
+        const riskModal = document.getElementById('risk-modal');
+        const riskContent = document.getElementById('risk-content');
+        riskContent.innerHTML = '<div style="text-align:center;padding:2rem">'
+            + '<div style="font-size:3rem;margin-bottom:1rem">&#x1F4F5;</div>'
+            + '<h3 style="color:#DC143C;font-weight:700;margin-bottom:0.75rem">No Internet Connection</h3>'
+            + '<p style="color:#4a4a4a;font-size:0.9rem;line-height:1.6;margin-bottom:1.5rem">'
+            + 'AI Risk Assessment requires internet. It runs on Google Gemini AI in the cloud.'
+            + '</p>'
+            + '<div style="background:rgba(230,57,70,0.08);border-radius:0.75rem;padding:1rem;text-align:left;margin-bottom:1rem">'
+            + '<p style="color:#1a1a1a;font-size:0.875rem;font-weight:600;margin-bottom:0.5rem">&#x2705; What works offline:</p>'
+            + '<ul style="color:#4a4a4a;font-size:0.8rem;line-height:1.8;padding-left:1.2rem">'
+            + '<li>Safety Guides (Before / During / After)</li>'
+            + '<li>Emergency Contacts</li>'
+            + '<li>Community Hub</li>'
+            + '<li>Last saved earthquake data</li>'
+            + '</ul></div>'
+            + '<button onclick="closeRiskModal()" style="background:#DC143C;color:white;border:none;padding:0.75rem 2rem;border-radius:0.75rem;font-weight:600;cursor:pointer;width:100%">OK, Got It</button>'
+            + '</div>';
+        riskModal.classList.remove('hidden');
+        return;
+    }
+
     const loadingModal = document.getElementById('loading-modal');
     loadingModal.classList.remove('hidden');
     const loadingTitle = loadingModal.querySelector('.loading-title');
