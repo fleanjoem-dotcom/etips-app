@@ -55,11 +55,11 @@ body {
 /* Landing Page - White Background with Red Glow */
 .landing-page {
   min-height: 100vh;
-  background: #ffffff;
+  background: transparent;   /* canvas visible on splash screen too */
   display: flex;
   flex-direction: column;
   position: relative;
-  z-index: 2;          /* above the line-canvas */
+  z-index: 2;
   overflow: hidden;
 }
 
@@ -300,11 +300,11 @@ body {
 .app-container {
   max-width: 480px;
   margin: 0 auto;
-  background: #ffffff;
+  background: transparent;   /* let the dot/line canvas show through */
   min-height: 100vh;
   position: relative;
-  z-index: 2;          /* above the line-canvas (z-index: 0) */
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+  z-index: 2;                /* content stays above canvas */
+  box-shadow: none;          /* no shadow needed on transparent container */
 }
 
 /* Header - Crimson Red Gradient */
@@ -713,6 +713,7 @@ body {
 .app-container {
   padding-bottom: 6rem !important;
   min-height: 100vh;
+  background: transparent !important;   /* ensure canvas always visible */
 }
 
 /* Additional padding for scrollable content */
