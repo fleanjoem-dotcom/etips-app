@@ -1198,13 +1198,48 @@ body {
   }
 }
 
-/* Community Page Styles */
+/* ── Community Page Styles ───────────────────────────────────────────────────
+   All community sections use transparent/glass backgrounds so the animated
+   dot-network canvas (#line-canvas) stays visible behind the content,
+   matching the Home / Guides / Alerts visual style.                       */
+
+/* Community & Category pages must sit above the fixed canvas (z-index: 0).
+   .app-container already has z-index: 2, so these inherit that context.   */
+#community-page,
+.category-page {
+  position: relative;
+  z-index: 2;
+  background: transparent !important;
+}
+
+/* Every direct .section wrapper inside community page floats above canvas */
+#community-page .section,
+#community-main .section {
+  position: relative;
+  z-index: 3;
+}
+
+/* Every sub-section within the community hub is transparent too */
+#community-main,
+#safety-tips-page,
+#reminders-page,
+#drill-tutorials-page,
+#drill-detail-page,
+#emergency-kit-page {
+  background: transparent !important;
+}
+
 .community-header {
-  background: linear-gradient(135deg, rgba(42, 157, 143, 0.2), rgba(69, 123, 157, 0.2));
+  position: relative;
+  z-index: 3;
+  background: linear-gradient(135deg, rgba(220, 20, 60, 0.12), rgba(69, 123, 157, 0.10));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 1rem;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  border: 1px solid rgba(42, 157, 143, 0.3);
+  border: 1px solid rgba(220, 20, 60, 0.25);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
 }
 
 .community-stats {
@@ -1234,6 +1269,8 @@ body {
 }
 
 .community-section {
+  position: relative;
+  z-index: 3;
   margin-bottom: 2rem;
 }
 
@@ -1324,11 +1361,16 @@ body {
 }
 
 .tip-card {
-  background: linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(230, 57, 70, 0.05));
+  position: relative;
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-left: 4px solid #DC143C;
   border-radius: 0.75rem;
   padding: 1rem;
   margin-bottom: 0.75rem;
+  box-shadow: 0 4px 16px rgba(220, 20, 60, 0.12), 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .tip-number {
@@ -1413,15 +1455,20 @@ body {
 }
 
 .contact-card {
-  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 0.75rem;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(220, 20, 60, 0.15);
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.75rem;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
 .contact-card:hover {
@@ -1562,23 +1609,29 @@ svg {
 }
 
 
-/* Community Category Cards */
+/* Community Category Cards — sit ON TOP of the animated canvas */
 .category-card {
+    position: relative;
+    z-index: 3;
     transition: all 0.3s ease;
 }
 
 .category-card:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 12px 40px rgba(220, 20, 60, 0.3);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 16px 48px rgba(220, 20, 60, 0.3), 0 4px 16px rgba(0,0,0,0.12) !important;
+    border-color: rgba(220, 20, 60, 0.6) !important;
 }
 
 .category-card:active {
     transform: translateY(-2px) scale(1.01);
 }
 
-/* Category Pages */
+/* Category Pages — transparent so canvas shows through */
 .category-page {
     animation: fadeIn 0.5s ease;
+    background: transparent !important;
+    position: relative;
+    z-index: 2;
 }
 
 @keyframes fadeIn {

@@ -1750,11 +1750,14 @@ function renderSafetyTips() {
                 const tipCard = document.createElement('div');
                 tipCard.className = 'tip-item-card';
                 tipCard.style.cssText = `
-                    background: rgba(247, 127, 0, 0.08);
+                    background: rgba(255, 255, 255, 0.78);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
                     border-radius: 0.75rem;
                     padding: 1rem;
                     margin-bottom: 0.75rem;
-                    border: 1px solid rgba(247, 127, 0, 0.2);
+                    border: 1px solid rgba(220, 20, 60, 0.2);
+                    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
                     transition: all 0.3s ease;
                     animation: slideIn 0.3s ease ${index * 0.1}s both;
                 `;
@@ -1783,7 +1786,7 @@ function renderSafetyTips() {
                 
                 tipCard.addEventListener('mouseleave', () => {
                     tipCard.style.borderColor = 'rgba(247, 127, 0, 0.2)';
-                    tipCard.style.boxShadow = 'none';
+                    tipCard.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
                     tipCard.style.transform = 'translateY(0)';
                 });
                 
@@ -1805,7 +1808,7 @@ function renderReminders() {
     creatorHeader.style.cssText = 'margin-bottom: 1.5rem;';
     creatorHeader.innerHTML = `
         <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1.125rem; margin-bottom: 0.5rem;">👥 Safety Reminders from the Community</h3>
-        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.6;">
+        <p style="color: #4a4a4a; font-size: 0.875rem; line-height: 1.6;">
             Important earthquake preparedness reminders from our safety advocates. Stay informed and stay safe!
         </p>
     `;
@@ -1880,28 +1883,30 @@ function renderReminders() {
     creatorReminders.forEach((reminder, index) => {
         const reminderCard = document.createElement('div');
         reminderCard.style.cssText = `
-            background: rgba(247, 127, 0, 0.08);
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 1rem;
             overflow: hidden;
-            border: 1px solid rgba(247, 127, 0, 0.2);
+            border: 1px solid rgba(220, 20, 60, 0.18);
             margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
             animation: slideIn 0.3s ease ${index * 0.1}s both;
         `;
         
         reminderCard.innerHTML = `
-            <div style="display: flex; flex-direction: row; align-items: stretch;">
-                <!-- Image on the left - full picture visible -->
-                <div style="width: 35%; min-height: 250px; background: ${reminder.gradient}; display: flex; align-items: center; justify-content: center; padding: 1rem;">
-                    <div style="width: 100%; height: 100%; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
-                        <img src="${reminder.image}" alt="Safety Reminder" style="width: 100%; height: 100%; object-fit: contain; background: ${reminder.gradient};">
-                    </div>
+            <div style="display: flex; flex-direction: column;">
+                <!-- Full-width image on top — whole picture always visible -->
+                <div style="width: 100%; height: 200px; background: ${reminder.gradient}; display: flex; align-items: center; justify-content: center; border-radius: 1rem 1rem 0 0; overflow: hidden; padding: 0.75rem;">
+                    <img src="${reminder.image}" alt="Safety Reminder"
+                         style="width: 100%; height: 100%; object-fit: contain; border-radius: 0.5rem;">
                 </div>
-                <!-- Content on the right -->
-                <div style="flex: 1; padding: 1.5rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                        <div style="width: 2.5rem; height: 2.5rem; background: ${reminder.badgeBg}; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${reminder.badgeColor}" stroke-width="2">
+                <!-- Content below the image -->
+                <div style="padding: 1.25rem 1.5rem 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                        <div style="width: 2.25rem; height: 2.25rem; background: ${reminder.badgeBg}; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${reminder.badgeColor}" stroke-width="2">
                                 ${reminder.icon}
                             </svg>
                         </div>
@@ -1922,8 +1927,8 @@ function renderReminders() {
         });
         
         reminderCard.addEventListener('mouseleave', () => {
-            reminderCard.style.borderColor = 'rgba(247, 127, 0, 0.2)';
-            reminderCard.style.boxShadow = 'none';
+            reminderCard.style.borderColor = 'rgba(220, 20, 60, 0.18)';
+            reminderCard.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
             reminderCard.style.transform = 'translateY(0)';
         });
         
@@ -1932,7 +1937,7 @@ function renderReminders() {
     
     // Add separator
     const separator = document.createElement('div');
-    separator.style.cssText = 'height: 2px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent); margin: 2rem 0;';
+    separator.style.cssText = 'height: 2px; background: linear-gradient(to right, transparent, rgba(0,0,0,0.1), transparent); margin: 2rem 0;';
     container.appendChild(separator);
     
     // Add header for regular reminders
@@ -1940,7 +1945,7 @@ function renderReminders() {
     regularHeader.style.cssText = 'margin-bottom: 1.5rem;';
     regularHeader.innerHTML = `
         <h3 style="color: #1a1a1a; font-weight: 700; font-size: 1.125rem; margin-bottom: 0.5rem;">🔔 Regular Maintenance Reminders</h3>
-        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.6;">
+        <p style="color: #4a4a4a; font-size: 0.875rem; line-height: 1.6;">
             Keep your emergency preparedness up-to-date with these regular maintenance tasks
         </p>
     `;
@@ -1956,14 +1961,17 @@ function renderReminders() {
         const reminderCard = document.createElement('div');
         reminderCard.className = 'reminder-card';
         reminderCard.style.cssText = `
-            background: rgba(247, 127, 0, 0.08);
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 0.75rem;
             padding: 1rem;
             margin-bottom: 0.75rem;
             border-left: 4px solid ${priorityColor};
-            border-right: 1px solid rgba(247, 127, 0, 0.2);
-            border-top: 1px solid rgba(247, 127, 0, 0.2);
-            border-bottom: 1px solid rgba(247, 127, 0, 0.2);
+            border-right: 1px solid rgba(220, 20, 60, 0.15);
+            border-top: 1px solid rgba(220, 20, 60, 0.15);
+            border-bottom: 1px solid rgba(220, 20, 60, 0.15);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             transition: all 0.3s ease;
             animation: slideIn 0.3s ease ${(index + 3) * 0.1}s both;
         `;
@@ -1975,7 +1983,7 @@ function renderReminders() {
                         <span style="background: ${priorityBg}; color: ${priorityColor}; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
                             ${reminder.priority}
                         </span>
-                        <span style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">
+                        <span style="color: #777; font-size: 0.75rem;">
                             ${reminder.frequency}
                         </span>
                     </div>
@@ -1998,7 +2006,7 @@ function renderReminders() {
         });
         
         reminderCard.addEventListener('mouseleave', () => {
-            reminderCard.style.boxShadow = 'none';
+            reminderCard.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
             reminderCard.style.transform = 'translateX(0)';
         });
         
@@ -2018,11 +2026,14 @@ function renderDrillTutorials() {
         const drillCard = document.createElement('div');
         drillCard.className = 'drill-card';
         drillCard.style.cssText = `
-            background: rgba(247, 127, 0, 0.08);
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 0.75rem;
             overflow: hidden;
             margin-bottom: 1rem;
-            border: 1px solid rgba(247, 127, 0, 0.2);
+            border: 1px solid rgba(220, 20, 60, 0.18);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             transition: all 0.3s ease;
             cursor: pointer;
             animation: slideIn 0.3s ease ${index * 0.1}s both;
@@ -2062,8 +2073,8 @@ function renderDrillTutorials() {
         });
         
         drillCard.addEventListener('mouseleave', () => {
-            drillCard.style.borderColor = 'rgba(247, 127, 0, 0.2)';
-            drillCard.style.boxShadow = 'none';
+            drillCard.style.borderColor = 'rgba(220, 20, 60, 0.18)';
+            drillCard.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)';
             drillCard.style.transform = 'translateY(0)';
         });
         
@@ -2095,14 +2106,17 @@ function showDrillDetail(drill) {
     drill.steps.forEach((step, index) => {
         const stepCard = document.createElement('div');
         stepCard.style.cssText = `
-            background: rgba(247, 127, 0, 0.08);
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 0.75rem;
             padding: 1rem;
             margin-bottom: 1rem;
             border-left: 4px solid var(--etips-red);
-            border-right: 1px solid rgba(247, 127, 0, 0.2);
-            border-top: 1px solid rgba(247, 127, 0, 0.2);
-            border-bottom: 1px solid rgba(247, 127, 0, 0.2);
+            border-right: 1px solid rgba(220, 20, 60, 0.15);
+            border-top: 1px solid rgba(220, 20, 60, 0.15);
+            border-bottom: 1px solid rgba(220, 20, 60, 0.15);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             animation: slideIn 0.3s ease ${index * 0.1}s both;
         `;
         
@@ -2168,11 +2182,14 @@ function renderEmergencyKit() {
         
         const categoryHeader = document.createElement('div');
         categoryHeader.style.cssText = `
-            background: linear-gradient(135deg, rgba(230, 57, 70, 0.2), rgba(247, 127, 0, 0.2));
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-radius: 0.75rem;
             padding: 1rem;
             margin-bottom: 1rem;
-            border: 1px solid rgba(230, 57, 70, 0.3);
+            border: 1px solid rgba(220, 20, 60, 0.22);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
             animation: slideIn 0.3s ease ${catIndex * 0.1}s both;
         `;
         categoryHeader.innerHTML = `
