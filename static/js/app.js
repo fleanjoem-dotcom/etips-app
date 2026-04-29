@@ -946,30 +946,52 @@ async function loadAlerts() {
 }
 
 // Get user location
+// Checks current permission state before prompting — avoids conflicting with
+// the styled permission modal in index.html.
 function getUserLocation() {
-    if (navigator.geolocation) {
+    if (!navigator.geolocation) {
+        userLocation = { lat: 6.3167, lng: 124.9500 };
+        return;
+    }
+
+    if (navigator.permissions) {
+        navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+            if (result.state === 'granted') {
+                // Already allowed — fetch silently
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        console.log('GPS location (pre-granted):', userLocation);
+                    },
+                    () => { userLocation = { lat: 6.3167, lng: 124.9500 }; },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else if (result.state === 'denied') {
+                console.log('Location denied — using Tupi, South Cotabato default');
+                userLocation = { lat: 6.3167, lng: 124.9500 };
+            }
+            // state === 'prompt' → handled by the permission modal in index.html
+        }).catch(() => {
+            // Permissions API unavailable — call directly
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    console.log('GPS location:', userLocation);
+                },
+                () => { userLocation = { lat: 6.3167, lng: 124.9500 }; },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
+    } else {
+        // Old browser without permissions API — call directly
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
+            (pos) => {
+                userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 console.log('GPS location:', userLocation);
             },
-            (error) => {
-                console.log('Using Tupi, South Cotabato default location');
-                // Tupi, South Cotabato (NOT Davao)
-                userLocation = { lat: 6.3167, lng: 124.9500 };
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
+            () => { userLocation = { lat: 6.3167, lng: 124.9500 }; },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
-    } else {
-        // Tupi, South Cotabato default
-        userLocation = { lat: 6.3167, lng: 124.9500 };
     }
 }
 

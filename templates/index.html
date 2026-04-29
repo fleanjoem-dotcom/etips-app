@@ -588,9 +588,9 @@
     </div>
 
     <!-- Community Page -->
-    <div id="community-page" class="app-container hidden">
+    <div id="community-page" class="app-container hidden" style="background: transparent !important;">
         <!-- Community Main Page -->
-        <div id="community-main" class="pb-24">
+        <div id="community-main" class="pb-24" style="background: transparent !important;">
             <div class="app-header">
                 <div class="header-top">
                     <button onclick="showView('home')" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
@@ -621,8 +621,8 @@
             <div class="section mt-6">
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                     <!-- Safety Tips Card -->
-                    <div onclick="showCommunityCategory('safety-tips')" style="background: linear-gradient(135deg, rgba(220, 20, 60, 0.08), rgba(220, 20, 60, 0.04)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220, 20, 60, 0.2); cursor: pointer; transition: all 0.3s ease;" class="category-card">
-                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(220, 20, 60, 0.12); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                    <div onclick="showCommunityCategory('safety-tips')" class="category-card" style="position: relative; z-index: 3; background: rgba(255,255,255,0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220,20,60,0.35); box-shadow: 0 8px 32px rgba(220,20,60,0.15), 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s ease;">
+                        <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, rgba(220,20,60,0.15), rgba(220,20,60,0.08)); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(220,20,60,0.2);">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                                 <polyline points="9 12 11 14 15 10"></polyline>
@@ -633,7 +633,7 @@
                     </div>
                     
                     <!-- Reminders Card -->
-                    <div onclick="showCommunityCategory('reminders')" style="background: linear-gradient(135deg, rgba(220, 20, 60, 0.08), rgba(220, 20, 60, 0.04)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220, 20, 60, 0.2); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;" class="category-card">
+                    <div onclick="showCommunityCategory('reminders')" class="category-card" style="position: relative; z-index: 3; overflow: hidden; background: rgba(255,255,255,0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220,20,60,0.35); box-shadow: 0 8px 32px rgba(220,20,60,0.15), 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s ease;">
                         <!-- Background Images Preview (showing all 6 images) -->
                         <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 40%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); opacity: 0.15; pointer-events: none;">
                             <img src="{{ url_for('static', filename='images/reminder-1.jpg') }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
@@ -681,8 +681,8 @@
                     </div>
                     
                     <!-- Drill Tutorials Card -->
-                    <div onclick="showCommunityCategory('drill-tutorials')" style="background: linear-gradient(135deg, rgba(220, 20, 60, 0.08), rgba(220, 20, 60, 0.04)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220, 20, 60, 0.2); cursor: pointer; transition: all 0.3s ease;" class="category-card">
-                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(220, 20, 60, 0.12); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                    <div onclick="showCommunityCategory('drill-tutorials')" class="category-card" style="position: relative; z-index: 3; background: rgba(255,255,255,0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220,20,60,0.35); box-shadow: 0 8px 32px rgba(220,20,60,0.15), 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s ease;">
+                        <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, rgba(220,20,60,0.15), rgba(220,20,60,0.08)); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(220,20,60,0.2);">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
@@ -696,8 +696,8 @@
                     </div>
                     
                     <!-- Emergency Kit Card -->
-                    <div onclick="showCommunityCategory('emergency-kit')" style="background: linear-gradient(135deg, rgba(220, 20, 60, 0.08), rgba(220, 20, 60, 0.04)); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220, 20, 60, 0.2); cursor: pointer; transition: all 0.3s ease;" class="category-card">
-                        <div style="width: 3.5rem; height: 3.5rem; background: rgba(220, 20, 60, 0.12); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                    <div onclick="showCommunityCategory('emergency-kit')" class="category-card" style="position: relative; z-index: 3; background: rgba(255,255,255,0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(220,20,60,0.35); box-shadow: 0 8px 32px rgba(220,20,60,0.15), 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s ease;">
+                        <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, rgba(220,20,60,0.15), rgba(220,20,60,0.08)); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(220,20,60,0.2);">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
                                 <rect x="3" y="7" width="18" height="14" rx="2"></rect>
                                 <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -791,7 +791,7 @@
                 </div>
                 
                 <!-- Privacy Notice -->
-                <div style="background: rgba(69, 123, 157, 0.1); border-radius: 0.75rem; padding: 1rem; margin-top: 1rem; border-left: 4px solid #457b9d;">
+                <div style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 0.75rem; padding: 1rem; margin-top: 1rem; border-left: 4px solid #457b9d; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
                     <p style="color: #333333; font-size: 0.875rem; line-height: 1.6;">
                         <strong style="color: #457b9d;">&#x1F512; Privacy Notice:</strong> When you tap a contact, E-TIPS will request permission to access your phone's dialer. We only use this to help you make emergency calls. Your contact information is never stored or shared.
                     </p>
@@ -804,7 +804,7 @@
                 <div style="display: grid; gap: 0.75rem;">
 
                     <!-- PHIVOLCS -->
-                    <a href="https://www.phivolcs.dost.gov.ph/" target="_blank" rel="noopener noreferrer" style="background: #f0f4f8; border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(69,123,157,0.2); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease;" onmouseover="this.style.background='#dde9f3'; this.style.borderColor='rgba(69,123,157,0.5)'" onmouseout="this.style.background='#f0f4f8'; this.style.borderColor='rgba(69,123,157,0.2)'">
+                    <a href="https://www.phivolcs.dost.gov.ph/" target="_blank" rel="noopener noreferrer" style="background: rgba(255,255,255,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(69,123,157,0.25); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; box-shadow: 0 2px 12px rgba(0,0,0,0.06);" onmouseover="this.style.background='rgba(221,233,243,0.9)'; this.style.borderColor='rgba(69,123,157,0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.75)'; this.style.borderColor='rgba(69,123,157,0.25)'">
                         <div style="width: 2.5rem; height: 2.5rem; background: rgba(69,123,157,0.15); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#457b9d" stroke-width="2">
                                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -819,7 +819,7 @@
                     </a>
 
                     <!-- NDRRMC -->
-                    <a href="https://www.ndrrmc.gov.ph/" target="_blank" rel="noopener noreferrer" style="background: #f0f4f8; border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(220,20,60,0.2); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease;" onmouseover="this.style.background='#fdf0f2'; this.style.borderColor='rgba(220,20,60,0.5)'" onmouseout="this.style.background='#f0f4f8'; this.style.borderColor='rgba(220,20,60,0.2)'">
+                    <a href="https://www.ndrrmc.gov.ph/" target="_blank" rel="noopener noreferrer" style="background: rgba(255,255,255,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(220,20,60,0.2); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; box-shadow: 0 2px 12px rgba(0,0,0,0.06);" onmouseover="this.style.background='rgba(253,240,242,0.9)'; this.style.borderColor='rgba(220,20,60,0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.75)'; this.style.borderColor='rgba(220,20,60,0.2)'">
                         <div style="width: 2.5rem; height: 2.5rem; background: rgba(220,20,60,0.1); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2">
                                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
@@ -834,7 +834,7 @@
                     </a>
 
                     <!-- USGS -->
-                    <a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener noreferrer" style="background: #f0f4f8; border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(230,57,70,0.2); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease;" onmouseover="this.style.background='#fdf0f2'; this.style.borderColor='rgba(230,57,70,0.5)'" onmouseout="this.style.background='#f0f4f8'; this.style.borderColor='rgba(230,57,70,0.2)'">
+                    <a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener noreferrer" style="background: rgba(255,255,255,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 0.75rem; padding: 1rem; border: 1px solid rgba(230,57,70,0.2); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; box-shadow: 0 2px 12px rgba(0,0,0,0.06);" onmouseover="this.style.background='rgba(253,240,242,0.9)'; this.style.borderColor='rgba(230,57,70,0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.75)'; this.style.borderColor='rgba(230,57,70,0.2)'">
                         <div style="width: 2.5rem; height: 2.5rem; background: rgba(230,57,70,0.1); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e63946" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -854,7 +854,7 @@
 
         
         <!-- Safety Tips Page -->
-        <div id="safety-tips-page" class="category-page pb-24 hidden">
+        <div id="safety-tips-page" class="category-page pb-24 hidden" style="background: transparent !important;">
             <div class="app-header">
                 <div class="header-top">
                     <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
@@ -877,7 +877,7 @@
         </div>
         
         <!-- Reminders Page -->
-        <div id="reminders-page" class="category-page pb-24 hidden">
+        <div id="reminders-page" class="category-page pb-24 hidden" style="background: transparent !important;">
             <div class="app-header">
                 <div class="header-top">
                     <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
@@ -900,7 +900,7 @@
         </div>
         
         <!-- Drill Tutorials Page -->
-        <div id="drill-tutorials-page" class="category-page pb-24 hidden">
+        <div id="drill-tutorials-page" class="category-page pb-24 hidden" style="background: transparent !important;">
             <div class="app-header">
                 <div class="header-top">
                     <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
@@ -923,7 +923,7 @@
         </div>
         
         <!-- Drill Detail Page -->
-        <div id="drill-detail-page" class="category-page pb-24 hidden">
+        <div id="drill-detail-page" class="category-page pb-24 hidden" style="background: transparent !important;">
             <div class="app-header">
                 <div class="header-top">
                     <button onclick="backToDrillTutorials()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
@@ -965,7 +965,7 @@
         </div>
         
         <!-- Emergency Kit Page -->
-        <div id="emergency-kit-page" class="category-page pb-24 hidden">
+        <div id="emergency-kit-page" class="category-page pb-24 hidden" style="background: transparent !important;">
             <div class="app-header">
                 <div class="header-top">
                     <button onclick="backToCommunityMain()" style="background: rgba(255,255,255,0.1); border: none; color: #1a1a1a; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;">
@@ -1800,6 +1800,402 @@
                 });
             });
         });
+    </script>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         PERMISSION PROMPT MODAL
+         Shows once on first open: Step 1 = Notifications, Step 2 = Location
+    ════════════════════════════════════════════════════════════════════ -->
+    <div id="permission-modal" style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: rgba(10, 10, 20, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+    ">
+        <div id="permission-card" style="
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(220, 20, 60, 0.4);
+            border-radius: 1.5rem;
+            padding: 2rem 1.75rem;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(220,20,60,0.15);
+            text-align: center;
+            transform: scale(0.85);
+            opacity: 0;
+            transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease;
+        ">
+            <!-- Icon container -->
+            <div id="perm-icon-wrap" style="
+                width: 5rem; height: 5rem;
+                background: linear-gradient(135deg, rgba(220,20,60,0.25), rgba(247,127,0,0.15));
+                border: 2px solid rgba(220,20,60,0.5);
+                border-radius: 1.25rem;
+                display: flex; align-items: center; justify-content: center;
+                margin: 0 auto 1.25rem;
+                box-shadow: 0 8px 30px rgba(220,20,60,0.3);
+            ">
+                <!-- Bell icon (Step 1) -->
+                <svg id="perm-icon-bell" xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                     viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <!-- Location icon (Step 2) -->
+                <svg id="perm-icon-loc" xmlns="http://www.w3.org/2000/svg" width="36" height="36"
+                     viewBox="0 0 24 24" fill="none" stroke="#DC143C" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+            </div>
+
+            <!-- Step indicator -->
+            <div style="display:flex; align-items:center; justify-content:center; gap:0.4rem; margin-bottom:1rem;">
+                <div id="step-dot-1" style="width:8px;height:8px;border-radius:50%;background:#DC143C;transition:all 0.3s;"></div>
+                <div id="step-dot-2" style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.3s;"></div>
+            </div>
+
+            <div id="perm-step-label" style="
+                font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+                color: #DC143C; text-transform: uppercase; margin-bottom: 0.5rem;
+            ">Step 1 of 2</div>
+
+            <h2 id="perm-title" style="
+                color: #ffffff; font-size: 1.375rem; font-weight: 800;
+                margin-bottom: 0.75rem; line-height: 1.3;
+            ">Enable Notifications</h2>
+
+            <p id="perm-desc" style="
+                color: rgba(255,255,255,0.65); font-size: 0.9rem;
+                line-height: 1.65; margin-bottom: 1.5rem;
+            ">
+                E-TIPS sends <strong style="color:rgba(255,255,255,0.9);">real-time earthquake alerts</strong>
+                and emergency warnings directly to your device — even when the app is in the background.
+            </p>
+
+            <!-- Feature pills -->
+            <div id="perm-features" style="
+                display:flex; flex-direction:column; gap:0.5rem;
+                margin-bottom:1.75rem; text-align:left;
+            ">
+                <div class="perm-feature-pill">
+                    <span style="font-size:1rem;">🔔</span>
+                    <span>Instant earthquake alerts</span>
+                </div>
+                <div class="perm-feature-pill">
+                    <span style="font-size:1rem;">⚠️</span>
+                    <span>Aftershock &amp; tsunami warnings</span>
+                </div>
+                <div class="perm-feature-pill">
+                    <span style="font-size:1rem;">🚨</span>
+                    <span>Emergency evacuation notices</span>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <button id="perm-allow-btn" onclick="handlePermissionAllow()" style="
+                width: 100%;
+                background: linear-gradient(135deg, #DC143C, #e63946);
+                color: white; font-size: 1rem; font-weight: 700;
+                border: none; border-radius: 0.875rem; padding: 0.9rem 1rem;
+                cursor: pointer; margin-bottom: 0.625rem;
+                box-shadow: 0 6px 24px rgba(220,20,60,0.4);
+                transition: all 0.25s ease;
+                display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            ">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Allow
+            </button>
+            <button id="perm-skip-btn" onclick="handlePermissionSkip()" style="
+                width: 100%;
+                background: transparent;
+                color: rgba(255,255,255,0.4); font-size: 0.8rem;
+                border: 1px solid rgba(255,255,255,0.1); border-radius: 0.875rem;
+                padding: 0.6rem 1rem; cursor: pointer;
+                transition: all 0.25s ease;
+            ">
+                Not now
+            </button>
+        </div>
+    </div>
+
+    <style>
+        .perm-feature-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 0.625rem;
+            padding: 0.55rem 0.875rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+        #perm-allow-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(220,20,60,0.5);
+        }
+        #perm-skip-btn:hover {
+            color: rgba(255,255,255,0.7);
+            border-color: rgba(255,255,255,0.25);
+        }
+    </style>
+
+    <script>
+    // E-TIPS Permission Manager
+    // Step 1: Notification.requestPermission()              -> phone notification popup
+    // Step 2: navigator.geolocation.getCurrentPosition()   -> phone GPS popup
+    // After notification is granted, subscribes the Service Worker push manager
+    // so real push notifications are delivered to the device.
+
+    let _permStep = 1;
+
+    function showPermissionModal() {
+        var modal = document.getElementById('permission-modal');
+        var card  = document.getElementById('permission-card');
+        modal.style.display = 'flex';
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                card.style.transform = 'scale(1)';
+                card.style.opacity   = '1';
+            });
+        });
+    }
+
+    function hidePermissionModal(cb) {
+        var modal = document.getElementById('permission-modal');
+        var card  = document.getElementById('permission-card');
+        card.style.transform = 'scale(0.85)';
+        card.style.opacity   = '0';
+        setTimeout(function() {
+            modal.style.display = 'none';
+            if (typeof cb === 'function') cb();
+        }, 350);
+    }
+
+    function showResultBadge(granted, label) {
+        var existing = document.getElementById('perm-result-badge');
+        if (existing) existing.remove();
+        var badge = document.createElement('div');
+        badge.id = 'perm-result-badge';
+        badge.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:0.4rem;' +
+            'padding:0.5rem 0.875rem;border-radius:0.625rem;font-size:0.8rem;font-weight:700;margin-bottom:0.75rem;' +
+            (granted
+                ? 'background:rgba(42,157,143,0.2);border:1px solid rgba(42,157,143,0.5);color:#2a9d8f;'
+                : 'background:rgba(230,57,70,0.15);border:1px solid rgba(230,57,70,0.4);color:#e63946;');
+        badge.textContent = (granted ? '\u2705 ' : '\u274C ') + label;
+        var featuresEl = document.getElementById('perm-features');
+        featuresEl.parentNode.insertBefore(badge, featuresEl);
+    }
+
+    async function subscribePushNotifications(swReg) {
+        try {
+            var existing = await swReg.pushManager.getSubscription();
+            if (existing) return;
+            // userVisibleOnly required; no VAPID key = local notification channel
+            await swReg.pushManager.subscribe({ userVisibleOnly: true });
+        } catch(e) {
+            console.log('Push note:', e.message);
+        }
+    }
+
+    function setPermStep(step) {
+        _permStep = step;
+        var stepLabel = document.getElementById('perm-step-label');
+        var title     = document.getElementById('perm-title');
+        var desc      = document.getElementById('perm-desc');
+        var features  = document.getElementById('perm-features');
+        var bellIcon  = document.getElementById('perm-icon-bell');
+        var locIcon   = document.getElementById('perm-icon-loc');
+        var dot1      = document.getElementById('step-dot-1');
+        var dot2      = document.getElementById('step-dot-2');
+        var allowBtn  = document.getElementById('perm-allow-btn');
+        var skipBtn   = document.getElementById('perm-skip-btn');
+        var existing  = document.getElementById('perm-result-badge');
+        if (existing) existing.remove();
+
+        if (step === 1) {
+            stepLabel.textContent  = 'Step 1 of 2';
+            title.textContent      = 'Enable Notifications';
+            desc.innerHTML         = 'E-TIPS sends <strong style="color:rgba(255,255,255,0.9);">real-time earthquake alerts</strong> and emergency warnings directly to your phone \u2014 even when the app is closed.';
+            bellIcon.style.display = '';
+            locIcon.style.display  = 'none';
+            dot1.style.background  = '#DC143C';
+            dot2.style.background  = 'rgba(255,255,255,0.2)';
+            allowBtn.innerHTML     = '&#x2705; Allow Notifications';
+            features.innerHTML     =
+                '<div class="perm-feature-pill"><span>&#x1F514;</span><span>Instant earthquake push alerts</span></div>' +
+                '<div class="perm-feature-pill"><span>&#x26A0;&#xFE0F;</span><span>Aftershock &amp; tsunami warnings</span></div>' +
+                '<div class="perm-feature-pill"><span>&#x1F6A8;</span><span>Emergency evacuation notices</span></div>';
+            skipBtn.textContent = 'Not now';
+        } else {
+            stepLabel.textContent  = 'Step 2 of 2';
+            title.textContent      = 'Share Your Location';
+            desc.innerHTML         = "E-TIPS uses your phone's GPS to calculate <strong style=\"color:rgba(255,255,255,0.9);\">real distance to each earthquake</strong> and show the ones closest to you.";
+            bellIcon.style.display = 'none';
+            locIcon.style.display  = '';
+            dot1.style.background  = 'rgba(220,20,60,0.45)';
+            dot2.style.background  = '#DC143C';
+            allowBtn.innerHTML     = '&#x1F4CD; Allow Location';
+            features.innerHTML     =
+                '<div class="perm-feature-pill"><span>&#x1F4CD;</span><span>Distance to each earthquake from you</span></div>' +
+                '<div class="perm-feature-pill"><span>&#x1F5FA;&#xFE0F;</span><span>Personalised risk level for your area</span></div>' +
+                '<div class="perm-feature-pill"><span>&#x1F6F0;&#xFE0F;</span><span>High-accuracy phone GPS chip</span></div>';
+            skipBtn.textContent = 'Use default location';
+        }
+    }
+
+    async function handlePermissionAllow() {
+        var allowBtn = document.getElementById('perm-allow-btn');
+        allowBtn.disabled      = true;
+        allowBtn.style.opacity = '0.7';
+
+        if (_permStep === 1) {
+            // STEP 1: fires the REAL phone notification permission popup
+            var granted = false;
+            if (!('Notification' in window)) {
+                showResultBadge(false, 'Notifications not supported on this browser');
+            } else if (Notification.permission === 'granted') {
+                granted = true;
+                showResultBadge(true, 'Notifications already enabled on your phone');
+                if ('serviceWorker' in navigator) {
+                    try {
+                        var reg = await navigator.serviceWorker.ready;
+                        await subscribePushNotifications(reg);
+                    } catch(e) {}
+                }
+            } else if (Notification.permission === 'denied') {
+                showResultBadge(false, 'Blocked \u2014 enable in your phone Settings > Notifications');
+            } else {
+                // This line calls the NATIVE phone notification permission dialog
+                var result = await Notification.requestPermission();
+                granted = (result === 'granted');
+                showResultBadge(granted,
+                    granted ? 'Notifications enabled on your phone'
+                            : 'Denied \u2014 you can enable later in your phone Settings');
+                if (granted && 'serviceWorker' in navigator) {
+                    try {
+                        var r2 = await navigator.serviceWorker.ready;
+                        await subscribePushNotifications(r2);
+                    } catch(e) {}
+                }
+            }
+
+            allowBtn.disabled      = false;
+            allowBtn.style.opacity = '1';
+            setTimeout(function() {
+                var card = document.getElementById('permission-card');
+                card.style.transform = 'scale(0.9)';
+                card.style.opacity   = '0.4';
+                setTimeout(function() {
+                    setPermStep(2);
+                    card.style.transform = 'scale(1)';
+                    card.style.opacity   = '1';
+                }, 280);
+            }, 1000);
+
+        } else {
+            // STEP 2: fires the REAL phone GPS location permission popup
+            if (!navigator.geolocation) {
+                showResultBadge(false, 'GPS not available on this device');
+                allowBtn.disabled      = false;
+                allowBtn.style.opacity = '1';
+                setTimeout(function() {
+                    hidePermissionModal();
+                    localStorage.setItem('etips_perms_shown', '1');
+                }, 1000);
+                return;
+            }
+
+            // This line calls the NATIVE phone location permission dialog
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    var loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    window.userLocation = loc;
+                    try { userLocation = loc; } catch(e) {} // sync app.js global
+                    showResultBadge(true, 'Location access granted \u2014 using phone GPS');
+                    allowBtn.disabled      = false;
+                    allowBtn.style.opacity = '1';
+                    setTimeout(function() {
+                        hidePermissionModal();
+                        localStorage.setItem('etips_perms_shown', '1');
+                    }, 900);
+                },
+                function(err) {
+                    var fallback = { lat: 6.3167, lng: 124.9500 };
+                    window.userLocation = fallback;
+                    try { userLocation = fallback; } catch(e) {}
+                    showResultBadge(false, 'Location denied \u2014 using Tupi, South Cotabato default');
+                    allowBtn.disabled      = false;
+                    allowBtn.style.opacity = '1';
+                    setTimeout(function() {
+                        hidePermissionModal();
+                        localStorage.setItem('etips_perms_shown', '1');
+                    }, 1400);
+                },
+                // enableHighAccuracy = use phone GPS chip, not IP/network estimation
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        }
+    }
+
+    function handlePermissionSkip() {
+        if (_permStep === 1) {
+            var card = document.getElementById('permission-card');
+            card.style.transform = 'scale(0.9)';
+            card.style.opacity   = '0.4';
+            setTimeout(function() {
+                setPermStep(2);
+                card.style.transform = 'scale(1)';
+                card.style.opacity   = '1';
+            }, 280);
+        } else {
+            var fallback = { lat: 6.3167, lng: 124.9500 };
+            window.userLocation = fallback;
+            try { userLocation = fallback; } catch(e) {}
+            hidePermissionModal();
+            localStorage.setItem('etips_perms_shown', '1');
+        }
+    }
+
+    // Auto-show once on first open
+    window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            if (!localStorage.getItem('etips_perms_shown')) {
+                setPermStep(1);
+                showPermissionModal();
+            } else {
+                // Returning user: silently refresh GPS if already granted
+                if (navigator.permissions) {
+                    navigator.permissions.query({ name: 'geolocation' }).then(function(r) {
+                        if (r.state === 'granted') {
+                            navigator.geolocation.getCurrentPosition(
+                                function(pos) {
+                                    var loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                                    window.userLocation = loc;
+                                    try { userLocation = loc; } catch(e) {}
+                                },
+                                function() {},
+                                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                            );
+                        }
+                    }).catch(function() {});
+                }
+            }
+        }, 1200);
+    });
     </script>
 </body>
 </html>
